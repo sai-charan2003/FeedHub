@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.MyApp.MySplash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FFFFFF</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/rounded_rss_feed_24</item>
+        <item name="postSplashScreenTheme">@style/Theme.RSSparser</item>
+    </style>
+
+
+</resources>
