@@ -80,7 +80,10 @@ fun aboutapp(navHostController: NavHostController){
                     Column {
                         Text(text = "Project on Github")
                     }
-                })
+                },
+                    modifier =Modifier.clickable { uri.openUri("https://github.com/sai-charan2003/FeedHub") }
+
+                    )
                 HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
                 ListItem(
 
