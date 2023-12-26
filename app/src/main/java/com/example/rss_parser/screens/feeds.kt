@@ -84,10 +84,7 @@ fun feeds(navHostController: NavHostController) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text("No Feed Websites Found")
-                    Button(onClick = { navHostController.navigate(Destinations.addnewfeed.route) }) {
-                        Text(text = "Add Feed")
 
-                    }
 
                 }
             }
