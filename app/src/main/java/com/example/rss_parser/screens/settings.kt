@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +42,14 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavHostController
 import com.example.rss_parser.Navigation.Destinations
+import com.example.rss_parser.supabase.client.supabaseclient
 import com.example.rss_parser.ui.theme.RSSparserTheme
+import io.github.jan.supabase.exceptions.HttpRequestException
+import io.github.jan.supabase.exceptions.RestException
+import io.github.jan.supabase.gotrue.SignOutScope
+import io.github.jan.supabase.gotrue.auth
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +64,7 @@ fun settings(navHostController: NavHostController) {
     var showimages by remember {
         mutableStateOf(sharedPreferences.getBoolean("showimages", false))
     }
+    var coroutinescope= rememberCoroutineScope()
     var isSystemInDarkTheme = isSystemInDarkTheme()
     var darkmode by remember {
         mutableStateOf(sharedPreferences.getBoolean("darkmode",isSystemInDarkTheme))
@@ -185,6 +194,59 @@ fun settings(navHostController: NavHostController) {
                             }
                         }
                     )
+                    HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
+                    ListItem(
+
+
+                        {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Log Out",
+                                    modifier = Modifier.padding(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+
+
+                            }
+
+                        },
+                        modifier=Modifier.clickable { coroutinescope.launch {
+                            try {
+                                supabaseclient.client.auth.signOut(SignOutScope.GLOBAL)
+                                editor.putBoolean("islog", false)
+                                editor.apply()
+                                navHostController.popBackStack()
+                                navHostController.navigate(Destinations.enterscreen.route){
+                                    popUpTo(Destinations.home.route){
+                                        inclusive=true
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                when(e){
+                                    is RestException ->{
+                                        val error = e.message?.substringBefore("URL")
+                                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
+                                    }
+                                    is HttpRequestTimeoutException ->{
+                                        val error = e.message?.substringBefore("URL")
+                                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
+                                    }
+                                    is HttpRequestException ->{
+                                        val error = e.message?.substringBefore("URL")
+                                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+
+
+                            }
+                        } }
+
+                    )
+
 
                     HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
                     ListItem(

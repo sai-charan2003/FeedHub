@@ -1,21 +1,21 @@
 package com.example.rss_parser.viewmodel
 
 import android.content.Context
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.MutableState
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.rss_parser.database.bookmarkdatabase.bookmarks
-import com.example.rss_parser.database.bookmarkdatabase.bookmarksdatabase
-import com.example.rss_parser.database.bookmarkdatabase.bookmarksrepo
-import com.example.rss_parser.database.websitedata.website
-import com.example.rss_parser.database.websitedata.websiteDatabase
-import com.example.rss_parser.database.websitedata.websiterepo
+import com.example.rss_parser.supabase.database.bookmarkdatabase
+
+
 import com.example.rss_parser.rssdata.RssData
+import com.example.rss_parser.supabase.client.supabaseclient
+import com.example.rss_parser.supabase.database.website_supabase
 import com.prof18.rssparser.RssParserBuilder
 import com.prof18.rssparser.model.RssChannel
+import io.github.jan.supabase.postgrest.from
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,43 +25,26 @@ import okhttp3.OkHttpClient
 import java.io.IOException
 
 class viewmodel(context: Context):ViewModel() {
-    val websiterepo: websiterepo
-    val allwebsitelinks:LiveData<List<website>>
-    val bookmarksrepo:bookmarksrepo
-    val allbookmarks:LiveData<List<bookmarks>>
+
     private var _isloading= MutableStateFlow(true)
     var isLoading=_isloading.asStateFlow()
+    var websiterb = mutableListOf<website_supabase>()
+    private val _websiteUrls = MutableLiveData<List<String>>()
+    val websiteUrls: LiveData<List<String>> = _websiteUrls
+    private val _bookmarkdata = MutableLiveData<List<bookmarkdatabase>>()
+    val bookmarkdata: LiveData<List<bookmarkdatabase>> = _bookmarkdata
 
-    init {
-        val dao= websiteDatabase.getDatabase(context).websiteDao()
-        val bookmarksdao=bookmarksdatabase.getbookmarkDatabase(context).bookmarks()
-        websiterepo= websiterepo(dao)
-        allwebsitelinks=websiterepo.allwebsitelinks
-        bookmarksrepo=bookmarksrepo(bookmarksdao)
-        allbookmarks=bookmarksrepo.allbookmarks
-
-    }
-    fun insert(website: website)=viewModelScope.launch {
-        websiterepo.insert(website)
-    }
-    fun delete(link:String)=viewModelScope.launch {
-        websiterepo.delete(link)
-    }
-    fun insertbookmark(bookmarks: bookmarks)=viewModelScope.launch {
-        bookmarksrepo.insert(bookmarks)
-    }
-    fun deletebookmark(links:String)=viewModelScope.launch {
-        bookmarksrepo.delete(links)
-    }
-
-    val builder = RssParserBuilder(
+    private val builder = RssParserBuilder(
         callFactory = OkHttpClient(),
         charset = Charsets.UTF_8,
     )
 
-    val rssParser = builder.build()
+    private val rssParser = builder.build()
 
     val rssData = MutableLiveData<RssData>()
+    fun setLoading(isLoading: Boolean) {
+        _isloading.value = isLoading
+    }
 
      suspend fun fetchrssfeed(urls: String): RssChannel? {
          _isloading.value=true
@@ -99,7 +82,7 @@ class viewmodel(context: Context):ViewModel() {
                     rssParser.getRssChannel(url)
                 }
 
-                rssFeed?.items?.forEach { item ->
+                rssFeed.items.forEach { item ->
                     fetchedLinks.add(item.link ?: "")
                     fetchedTitles.add(item.title ?: "")
                     fetchedImages.add(item.image ?: "")
@@ -123,6 +106,58 @@ class viewmodel(context: Context):ViewModel() {
         )
         _isloading.value=false
     }
+    fun getwebsiteurlfromdb(){
+        _isloading.value=true
+
+        var websites: List<String>
+        try {
+
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    val fetchedUrls=
+                        supabaseclient.client.from("website").select()
+                            .decodeList<website_supabase>()
+                    Log.d("TAG", "getwebsiteurlfromdb: $fetchedUrls")
+                    websites=fetchedUrls.map { it.websitelink }
+                    _websiteUrls.postValue(websites )
+
+                }
+
+
+            }
+        }
+        catch (e:Exception){
+            Log.d("TAG", "getwebsiteurlfromdb: ${e.message}")
+        }
+        _isloading.value=false
+
+    }
+    fun getbookmarksdata(){
+
+
+        var bookmarksdat: List<bookmarkdatabase>
+
+        try{
+            viewModelScope.launch {
+                withContext(Dispatchers.IO){
+                    bookmarksdat= supabaseclient.client.from("bookmarks").select().decodeList<bookmarkdatabase>()
+                    }
+                    _bookmarkdata.postValue(bookmarksdat)
+
+                }
+            }
+        catch (e:Exception){
+            Log.d("TAG", "getbookmarksdata: $e")
+
+        }
+
+
+
+    }
+
+
+
+
 
 
 }

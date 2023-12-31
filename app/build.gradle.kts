@@ -2,13 +2,20 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
+    id("org.jetbrains.kotlin.plugin.serialization")
+
 }
 
 android {
     namespace = "com.example.rss_parser"
     compileSdk = 34
+    val key:String=com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).getProperty("SUPABASE_ANON_KEY")
+
+    val url:String=com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).getProperty("SUPABASE_URL")
+
 
     defaultConfig {
+
         applicationId = "com.example.rss_parser"
         minSdk = 26
         targetSdk = 34
@@ -18,7 +25,13 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+
         }
+
+        buildConfigField("String","SUPABASE_ANON_KEY","\"$key\"")
+        buildConfigField("String", "SUPABASE_URL", "\"$url\"")
+
+
     }
 
 
@@ -39,6 +52,7 @@ android {
         jvmTarget = "17"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     composeOptions {
@@ -52,7 +66,6 @@ android {
 }
 
 dependencies {
-
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
@@ -71,10 +84,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation ("androidx.room:room-runtime:2.6.1")
     implementation ("androidx.room:room-ktx:2.6.1")
-
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-
     implementation("com.prof18.rssparser:rssparser:6.0.5")
     implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation("io.coil-kt:coil-compose:2.5.0")
@@ -88,6 +99,11 @@ dependencies {
     kapt ("com.google.dagger:hilt-compiler:2.44")
     implementation ("androidx.hilt:hilt-navigation-compose:1.1.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
-
-
+    implementation ("io.github.jan-tennert.supabase:postgrest-kt:2.0.2")
+    implementation ("io.github.jan-tennert.supabase:realtime-kt:2.0.2")
+    implementation ("io.github.jan-tennert.supabase:storage-kt:2.0.2")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:2.0.2")
+    implementation ("io.ktor:ktor-client-core:2.3.7")
+    implementation ("io.ktor:ktor-utils:2.3.7")
+    implementation("io.ktor:ktor-client-cio:2.3.7")
 }

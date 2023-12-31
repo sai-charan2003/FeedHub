@@ -8,5 +8,10 @@ sealed class Destinations(val route:String) {
     object bookmarks:Destinations("bookmarks")
     object aboutdeveloper:Destinations("aboutdeveloper")
     object aboutapp:Destinations("aboutapp")
+    object signup:Destinations("signup")
+    object enterscreen:Destinations("enterscreen")
+    object signinscreen:Destinations("signin")
+    object password_recover:Destinations("password/{email}")
+
 
 }

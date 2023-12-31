@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavHostController
 import com.example.rss_parser.Navigation.Destinations
-import com.example.rss_parser.database.websitedata.website
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
