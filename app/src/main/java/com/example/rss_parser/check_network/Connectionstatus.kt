@@ -44,11 +44,9 @@ fun Context.observeConnectivityAsFlow() = callbackFlow {
 
     connectivityManager.registerNetworkCallback(networkRequest, callback)
 
-    // Set current state
     val currentState = getCurrentConnectivityState(connectivityManager)
     trySend(currentState)
 
-    // Remove callback when not used
     awaitClose {
         // Remove listeners
         connectivityManager.unregisterNetworkCallback(callback)
@@ -60,7 +58,6 @@ fun NetworkCallback(callback: (Connectionstatus) -> Unit): ConnectivityManager.N
         override fun onAvailable(network: Network) {
             callback(Connectionstatus.Available)
         }
-
         override fun onLost(network: Network) {
             callback(Connectionstatus.Unavailable)
         }
