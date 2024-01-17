@@ -23,7 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,6 +43,7 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
     val coroutine = rememberCoroutineScope()
 
     val context = LocalContext.current
+    val haptic= LocalHapticFeedback.current
     val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
 
@@ -53,6 +57,9 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
         }
 
     )
+    var ishapticenabled by remember{
+        mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
+    }
 
 
     var feedlink by remember {
@@ -101,6 +108,9 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
                                         )
                                         viewModel.getwebsiteurlfromdb()
                                         isloading=false
+                                        if(ishapticenabled) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        }
 
 
                                     } else {
@@ -122,14 +132,18 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
                                 }
                                 viewModel.getwebsiteurlfromdb()
                                 isloading=false
+                                if(ishapticenabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
                             }
                         }
+
                     }) {
                         val websites = viewModel.websiterb.mapNotNull { it.websitelink }
 
                         if (url?.contains(rssurl) == true) {
                             if(isloading){
-                                CircularProgressIndicator()
+                                CircularProgressIndicator( strokeCap = StrokeCap.Round)
 
                             }
 
@@ -139,7 +153,7 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
                             Icons.Outlined.Done, contentDescription = "")
 
                         } else {if(isloading){
-                            CircularProgressIndicator()
+                            CircularProgressIndicator( strokeCap = StrokeCap.Round)
 
                         }
                             Icon(

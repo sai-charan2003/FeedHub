@@ -22,6 +22,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.rss_parser.screens.aboutapp
 import com.example.rss_parser.screens.aboutdeveloper
+import com.example.rss_parser.screens.account
 import com.example.rss_parser.screens.addfeed
 import com.example.rss_parser.screens.booksmarks
 import com.example.rss_parser.screens.enterscreen
@@ -118,12 +119,12 @@ fun NavigationAppHost(navHostController: NavHostController) {
                         action= Intent.ACTION_VIEW
                     }
                 ),
-
-
-
             ){
                 password_change(navHostController)
 
+            }
+            composable(Destinations.account.route){
+                account(navHostController = navHostController)
             }
 
 
@@ -204,14 +205,12 @@ fun NavigationAppHost(navHostController: NavHostController) {
                         action= Intent.ACTION_VIEW
                     }
                 ),
-
-
-
-
-
             ){
                 password_change(navHostController)
 
+            }
+            composable(Destinations.account.route){
+                account(navHostController = navHostController)
             }
 
 

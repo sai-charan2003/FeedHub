@@ -12,6 +12,8 @@ sealed class Destinations(val route:String) {
     object enterscreen:Destinations("enterscreen")
     object signinscreen:Destinations("signin")
     object password_recover:Destinations("password/{email}")
+    object account:Destinations("account")
+
 
 
 }

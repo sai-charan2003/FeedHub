@@ -1,9 +1,12 @@
 package com.example.rss_parser.screens
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.SharedPreferences
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +23,7 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -37,8 +41,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.AutofillNode
+import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalAutofill
+import androidx.compose.ui.platform.LocalAutofillTree
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -46,13 +59,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CreatePasswordRequest
+import androidx.credentials.CredentialManager
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.rss_parser.Navigation.Destinations
 import com.example.rss_parser.R
 import com.example.rss_parser.supabase.client.supabaseclient
+import com.example.rss_parser.viewmodel.viewmodel
 import io.github.jan.supabase.exceptions.HttpRequestException
 import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.gotrue.SessionStatus
+import io.github.jan.supabase.gotrue.SignOutScope
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.gotrue.providers.builtin.OTP
@@ -61,6 +81,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun signin(navHostController: NavHostController) {
 
@@ -73,6 +94,21 @@ fun signin(navHostController: NavHostController) {
 
         mutableStateOf("")
     }
+
+
+    LaunchedEffect(Unit) {
+        supabaseclient.client.auth.signOut(SignOutScope.GLOBAL)
+
+    }
+    val autofillNode = AutofillNode(
+        autofillTypes = listOf(AutofillType.EmailAddress),
+        onFill = { username = it }
+    )
+
+
+    val autofill = LocalAutofill.current
+
+    LocalAutofillTree.current += autofillNode
     var showdiologbox by remember {
         mutableStateOf(false)
     }
@@ -80,6 +116,11 @@ fun signin(navHostController: NavHostController) {
     var userpassword by remember {
         mutableStateOf("")
     }
+    val autofillNodePassword = AutofillNode(
+        autofillTypes = listOf(AutofillType.Password),
+        onFill = { userpassword = it }
+    )
+    LocalAutofillTree.current += autofillNodePassword
     val keyboardController = LocalSoftwareKeyboardController.current
     var loading by remember {
         mutableStateOf(false)
@@ -92,6 +133,15 @@ fun signin(navHostController: NavHostController) {
     }
 
     val context = LocalContext.current
+    val viewModel = viewModel<viewmodel>(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return viewmodel(
+                    context
+                ) as T
+            }
+        }
+    )
     val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
     val editor = sharedPreferences.edit()
@@ -104,6 +154,7 @@ fun signin(navHostController: NavHostController) {
         }
 
     }
+    val credentialManager = CredentialManager.create(context)
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -131,7 +182,19 @@ fun signin(navHostController: NavHostController) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 30.dp, start = 10.dp, end = 10.dp),
+                .padding(top = 30.dp, start = 10.dp, end = 10.dp)
+                .onGloballyPositioned {
+                    autofillNode.boundingBox = it.boundsInWindow()
+                }
+                .onFocusChanged { focusState ->
+                    autofill?.run {
+                        if (focusState.isFocused) {
+                            requestAutofillForNode(autofillNode)
+                        } else {
+                            cancelAutofillForNode(autofillNode)
+                        }
+                    }
+                },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             label = { Text(text = "Email") },
@@ -144,7 +207,19 @@ fun signin(navHostController: NavHostController) {
 
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 30.dp, start = 10.dp, end = 10.dp),
+                .padding(top = 30.dp, start = 10.dp, end = 10.dp)
+                .onGloballyPositioned {
+                    autofillNodePassword.boundingBox = it.boundsInWindow()
+                }
+                .onFocusChanged { focusState ->
+                    autofill?.run {
+                        if (focusState.isFocused) {
+                            requestAutofillForNode(autofillNodePassword)
+                        } else {
+                            cancelAutofillForNode(autofillNodePassword)
+                        }
+                    }
+                },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             keyboardActions = KeyboardActions(
@@ -174,10 +249,9 @@ fun signin(navHostController: NavHostController) {
             label = { Text(text = "Password") },
 
             )
-        if (loading) {
-            CircularProgressIndicator(modifier = Modifier.padding(top = 30.dp))
-        } else {
+
             Button(
+
 
                 onClick = {
                     couroutine.launch {
@@ -252,17 +326,26 @@ fun signin(navHostController: NavHostController) {
 
                 }, modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 30.dp, start = 10.dp, end = 10.dp),
-                enabled = username.isNotEmpty()&&userpassword.isNotEmpty()
+                    .padding(top = 30.dp, start = 10.dp, end = 10.dp)
+                    .animateContentSize(),
+                enabled = username.isNotEmpty()&&userpassword.isNotEmpty()&&!loading
             ) {
-                Text("Sign In")
+                if(loading){
+                    CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize),
+                        strokeCap = StrokeCap.Round)
+                }
+                else {
+                    Text("Sign In")
+                }
 
             }
             TextButton(onClick = { showdiologbox = true;navHostController.navigate(Destinations.password_recover.route) }) {
                 Text(text = "Forgot Password")
 
             }
-            Row(modifier=Modifier.fillMaxWidth().padding(top=15.dp), horizontalArrangement = Arrangement.Center,) {
+            Row(modifier= Modifier
+                .fillMaxWidth()
+                .padding(top = 15.dp), horizontalArrangement = Arrangement.Center,) {
                 Text("Don't have an account?",modifier=Modifier.padding(end = 4.dp))
 
                 Text(text = "Sign Up",modifier=Modifier.clickable { navHostController.navigate(Destinations.signup.route) }, color = Color(0xff7bc3fe))
@@ -338,6 +421,6 @@ fun signin(navHostController: NavHostController) {
 //                    })
 //            }
 
-        }
+
     }
 }

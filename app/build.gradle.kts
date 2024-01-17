@@ -1,8 +1,14 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
     id("org.jetbrains.kotlin.plugin.serialization")
+
+
+
+
 
 }
 
@@ -12,12 +18,15 @@ android {
     val key:String=com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).getProperty("SUPABASE_ANON_KEY")
 
     val url:String=com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).getProperty("SUPABASE_URL")
+    val apiKey:String=com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).getProperty("apiKey")
+
 
 
     defaultConfig {
 
         applicationId = "com.example.rss_parser"
         minSdk = 26
+        compileSdkPreview="UpsideDownCake"
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -28,8 +37,12 @@ android {
 
         }
 
+
         buildConfigField("String","SUPABASE_ANON_KEY","\"$key\"")
         buildConfigField("String", "SUPABASE_URL", "\"$url\"")
+        buildConfigField("String","apiKey","\"$apiKey\"")
+
+
 
 
     }
@@ -85,8 +98,8 @@ dependencies {
     implementation ("androidx.room:room-runtime:2.6.1")
     implementation ("androidx.room:room-ktx:2.6.1")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-    implementation("com.prof18.rssparser:rssparser:6.0.5")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("com.prof18.rssparser:rssparser:6.0.6")
     implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
     implementation("io.coil-kt:coil-compose:2.5.0")
     annotationProcessor ("androidx.room:room-compiler:2.6.1")
@@ -95,7 +108,10 @@ dependencies {
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
     implementation("androidx.compose.material:material-icons-extended-android:1.5.4")
     implementation("com.google.accompanist:accompanist-swiperefresh:0.27.0")
-    implementation ("com.google.dagger:hilt-android:2.44")
+    implementation ("com.google.dagger:hilt-android:2.48")
+
+
+
     kapt ("com.google.dagger:hilt-compiler:2.44")
     implementation ("androidx.hilt:hilt-navigation-compose:1.1.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -106,4 +122,11 @@ dependencies {
     implementation ("io.ktor:ktor-client-core:2.3.7")
     implementation ("io.ktor:ktor-utils:2.3.7")
     implementation("io.ktor:ktor-client-cio:2.3.7")
+    implementation("com.google.ai.client.generativeai:generativeai:0.1.2")
+
+    implementation("com.github.mukeshsolanki:MarkdownView-Android:2.0.0")
+    implementation("com.meetup:twain:0.2.2")
+    implementation("androidx.credentials:credentials:1.2.0-alpha01")
+
+    implementation("androidx.credentials:credentials-play-services-auth:1.2.0-alpha01")
 }

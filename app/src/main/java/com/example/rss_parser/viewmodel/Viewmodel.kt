@@ -1,7 +1,13 @@
 package com.example.rss_parser.viewmodel
 
+import android.app.Activity
 import android.content.Context
+
 import android.util.Log
+import androidx.credentials.CreatePasswordRequest
+import androidx.credentials.CredentialManager
+import androidx.credentials.exceptions.CreateCredentialCancellationException
+import androidx.credentials.exceptions.CreateCredentialException
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,6 +17,7 @@ import com.example.rss_parser.supabase.database.bookmarkdatabase
 
 import com.example.rss_parser.rssdata.RssData
 import com.example.rss_parser.supabase.client.supabaseclient
+import com.example.rss_parser.supabase.database.auto_update
 import com.example.rss_parser.supabase.database.website_supabase
 import com.prof18.rssparser.RssParserBuilder
 import com.prof18.rssparser.model.RssChannel
@@ -23,8 +30,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.io.IOException
+import kotlin.math.log
 
 class viewmodel(context: Context):ViewModel() {
+
 
     private var _isloading= MutableStateFlow(true)
     var isLoading=_isloading.asStateFlow()
@@ -33,15 +42,21 @@ class viewmodel(context: Context):ViewModel() {
     val websiteUrls: LiveData<List<String>> = _websiteUrls
     private val _bookmarkdata = MutableLiveData<List<bookmarkdatabase>>()
     val bookmarkdata: LiveData<List<bookmarkdatabase>> = _bookmarkdata
+    private val _updatedata = MutableLiveData<List<auto_update>>()
+    val updatedata: LiveData<List<auto_update>> = _updatedata
 
     private val builder = RssParserBuilder(
         callFactory = OkHttpClient(),
         charset = Charsets.UTF_8,
     )
+    val credentialManager = CredentialManager.create(context)
+
+
+
 
     private val rssParser = builder.build()
 
-    val rssData = MutableLiveData<RssData>()
+        val rssData = MutableLiveData<RssData>()
     fun setLoading(isLoading: Boolean) {
         _isloading.value = isLoading
     }
@@ -63,6 +78,27 @@ class viewmodel(context: Context):ViewModel() {
             }
         }
     }
+    suspend fun saveCredential(activity: Activity, username: String, password: String) {
+
+        try {
+            Log.d("TAG", "saveCredential: hi")
+
+            credentialManager.createCredential(
+                request = CreatePasswordRequest(username, password),
+                activity = activity,
+            )
+            Log.d("CredentialTest", "Credentials successfully added")
+        }
+        catch (e: CreateCredentialCancellationException) {
+            //do nothing, the user chose not to save the credential
+            Log.d("CredentialTest", "User cancelled the save")
+        }
+        catch (e: CreateCredentialException) {
+            Log.d("CredentialTest", "Credential save error", e)
+        }
+    }
+
+
 
 
 
@@ -117,7 +153,7 @@ class viewmodel(context: Context):ViewModel() {
                     val fetchedUrls=
                         supabaseclient.client.from("website").select()
                             .decodeList<website_supabase>()
-                    Log.d("TAG", "getwebsiteurlfromdb: $fetchedUrls")
+
                     websites=fetchedUrls.map { it.websitelink }
                     _websiteUrls.postValue(websites )
 
@@ -154,9 +190,23 @@ class viewmodel(context: Context):ViewModel() {
 
 
     }
+    fun getupdatedata(){
+        var updatedata: List<auto_update>
+        try{
+            viewModelScope.launch {
+                withContext(Dispatchers.IO){
+                    updatedata=supabaseclient.client.from("auto_update").select().decodeList<auto_update>()
+                    //Log.d("TAG", "getupdatedata: ${supabaseclient.client.from("auto_update").select().decodeList<auto_update>()}")
+                }
+                //Log.d("TAG", "getupdatedata: $updatedata")
+                _updatedata.postValue(updatedata)
+            }
+        }
+        catch (e:Exception){
+            Log.d("TAG", "getupdatedata: $e")
+        }
 
-
-
+    }
 
 
 

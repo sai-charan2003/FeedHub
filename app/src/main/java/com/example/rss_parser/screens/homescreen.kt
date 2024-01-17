@@ -6,24 +6,30 @@ import android.content.SharedPreferences
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -32,8 +38,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,18 +60,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.rss_parser.BuildConfig
 import com.example.rss_parser.DateandTimeConverter.convertTo12HourFormatWithDayAndMonth
 
 
@@ -82,6 +98,9 @@ import com.example.rss_parser.ui.theme.RSSparserTheme
 import com.example.rss_parser.viewmodel.viewmodel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.ai.client.generativeai.GenerativeModel
+
+import com.meetup.twain.MarkdownText
 import io.github.jan.supabase.exceptions.HttpRequestException
 import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.gotrue.SignOutScope
@@ -97,10 +116,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun homescreen(navHostController: NavHostController) {
     val connection by connectivityState()
+    val clipboardManager= LocalClipboardManager.current
 
     val isConnected = connection === Connectionstatus.Available
     val context = LocalContext.current
     val coroutinescope = rememberCoroutineScope()
+
+
     val viewModel = viewModel<viewmodel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
@@ -110,6 +132,13 @@ fun homescreen(navHostController: NavHostController) {
             }
         }
     )
+    val generativeModel = GenerativeModel(
+        modelName = "gemini-pro",
+        apiKey = BuildConfig.apiKey
+    )
+    var summary by remember {
+        mutableStateOf("")
+    }
 
 
     val urls by viewModel.websiteUrls.observeAsState()
@@ -121,13 +150,21 @@ fun homescreen(navHostController: NavHostController) {
     var homeloading by remember {
         mutableStateOf(true)
     }
+    var aisummarypage by remember {
+        mutableStateOf(false)
+    }
     var finalloading by remember {
         mutableStateOf(true)
     }
+    val haptic= LocalHapticFeedback.current
 
     val isloading by viewModel.isLoading.collectAsState()
     finalloading = isloading||homeloading==true
     val swiperefresh = rememberSwipeRefreshState(isRefreshing = finalloading)
+    var selectedid by remember{
+        mutableStateOf(0)
+    }
+
 
 
     val rssData by viewModel.rssData.observeAsState(
@@ -165,6 +202,7 @@ fun homescreen(navHostController: NavHostController) {
 
 
 
+
     var dataempty by remember {
         mutableStateOf(false)
     }
@@ -173,6 +211,9 @@ fun homescreen(navHostController: NavHostController) {
         context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
     val showimages by remember {
         mutableStateOf(sharedPreferences.getBoolean("showimages", false))
+    }
+    var ishapticenabled by remember{
+        mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
     }
 
     val dark = isSystemInDarkTheme()
@@ -185,15 +226,8 @@ fun homescreen(navHostController: NavHostController) {
 
 
     LaunchedEffect(key1 = urls) {
-
-
-
         viewModel.setLoading(true)
-
         if(isConnected) {
-
-
-
             try {
                 supabaseclient.client.auth.currentAccessTokenOrNull()
             }
@@ -217,9 +251,7 @@ fun homescreen(navHostController: NavHostController) {
             viewModel.getbookmarksdata()
 
             urls?.let { viewModel.getData(it) }
-            delay(1000)
-
-
+            delay(1500)
             dataempty = urls?.isEmpty() == true
 
             
@@ -286,6 +318,9 @@ fun homescreen(navHostController: NavHostController) {
 
 
                 SwipeRefresh(state = swiperefresh, onRefresh = {
+                    if(ishapticenabled) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
                     sortedData = emptyList()
 
 
@@ -326,7 +361,7 @@ fun homescreen(navHostController: NavHostController) {
                                             {
                                                 val sendIntent: Intent = Intent().apply {
                                                     action = Intent.ACTION_SEND
-                                                    putExtra(Intent.EXTRA_TEXT, observedLinks[it])
+                                                    putExtra(Intent.EXTRA_TEXT, sortedData[it].first)
                                                     type = "text/plain"
                                                 }
                                                 Row(
@@ -340,7 +375,7 @@ fun homescreen(navHostController: NavHostController) {
                                                             modifier = Modifier
                                                                 .height(100.dp)
                                                                 .width(100.dp)
-                                                                .padding(10.dp)
+
                                                                 .clip(RoundedCornerShape(5.dp)),
                                                             alignment = Alignment.CenterEnd,
                                                             contentScale = ContentScale.Fit
@@ -404,6 +439,7 @@ fun homescreen(navHostController: NavHostController) {
                                                             )
                                                             Spacer(Modifier.weight(1f))
                                                             IconButton(onClick = {
+
                                                                 if (bookmarklink != null) {
                                                                     loading = true
                                                                     if (bookmarklink.contains(
@@ -425,6 +461,9 @@ fun homescreen(navHostController: NavHostController) {
                                                                             }
                                                                             viewModel.getbookmarksdata()
                                                                             loading = false
+                                                                            if(ishapticenabled) {
+                                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                            }
                                                                         }
 
                                                                     } else {
@@ -450,6 +489,9 @@ fun homescreen(navHostController: NavHostController) {
                                                                                 )
                                                                             viewModel.getbookmarksdata()
                                                                             loading = false
+                                                                            if(ishapticenabled) {
+                                                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                            }
                                                                         }
 
                                                                     }
@@ -461,7 +503,7 @@ fun homescreen(navHostController: NavHostController) {
                                                                         )
                                                                     ) {
                                                                         if (loading) {
-                                                                            CircularProgressIndicator()
+                                                                            CircularProgressIndicator( strokeCap = StrokeCap.Round)
                                                                         }
 
                                                                         Icon(
@@ -474,7 +516,7 @@ fun homescreen(navHostController: NavHostController) {
                                                                         )
                                                                     } else {
                                                                         if (loading) {
-                                                                            CircularProgressIndicator()
+                                                                            CircularProgressIndicator( strokeCap = StrokeCap.Round)
                                                                         }
                                                                         Icon(
 
@@ -490,6 +532,9 @@ fun homescreen(navHostController: NavHostController) {
 
                                                             }
                                                             IconButton(onClick = {
+                                                                if(ishapticenabled) {
+                                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                }
                                                                 val shareIntent =
                                                                     Intent.createChooser(
                                                                         sendIntent,
@@ -503,6 +548,27 @@ fun homescreen(navHostController: NavHostController) {
                                                                     imageVector = Icons.Outlined.Share,
                                                                     contentDescription = null,
                                                                     modifier = Modifier.size(15.dp)
+                                                                )
+
+                                                            }
+
+                                                            IconButton(onClick = {
+                                                                if(ishapticenabled) {
+                                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                }
+                                                                aisummarypage=true
+                                                                summary=""
+                                                                coroutinescope.launch {
+                                                                    val response=generativeModel.generateContent(sortedData[it].first)
+                                                                    summary=response.text.toString()
+                                                                }
+
+                                                             }) {
+                                                                Icon(
+                                                                    painter = painterResource(id = R.drawable.vector),
+                                                                    contentDescription = null,
+                                                                    tint = MaterialTheme.colorScheme.onBackground,
+                                                                    modifier=Modifier.size(15.dp)
                                                                 )
 
                                                             }
@@ -546,6 +612,7 @@ fun homescreen(navHostController: NavHostController) {
                         else{
                             Column(modifier=Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
 
+
                             }
                         }
 
@@ -561,6 +628,49 @@ fun homescreen(navHostController: NavHostController) {
                     }
 
                 }
+                if(aisummarypage){
+                    ModalBottomSheet(onDismissRequest = { aisummarypage=false;summary=""},modifier=Modifier.fillMaxSize()) {
+                        if(summary!="") {
+
+                            LazyColumn {
+                                item {
+                                    SelectionContainer(content = {
+                                        if(ishapticenabled) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        }
+
+                                        MarkdownText(
+
+
+                                            markdown = summary,
+                                            color = MaterialTheme.colorScheme.onBackground,
+                                            textAlign = TextAlign.Justify,
+                                            modifier = Modifier.padding(15.dp)
+
+                                        )
+                                    })
+
+
+
+
+
+
+                                }
+                            }
+                        }
+                        else{
+
+                            Column(modifier= Modifier
+                                .fillMaxWidth()
+                                .padding(top = 200.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                Text(text="Summarizing Article",modifier=Modifier.padding(bottom=15.dp))
+                                LinearProgressIndicator(strokeCap = StrokeCap.Round)
+                            }
+                        }
+
+                    }
+                }
+
             }
         }
     }

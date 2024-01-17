@@ -10,11 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -23,10 +27,17 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.rss_parser.Navigation.Destinations
 import com.example.rss_parser.R
+import com.example.rss_parser.supabase.client.supabaseclient
+import io.github.jan.supabase.gotrue.SignOutScope
+import io.github.jan.supabase.gotrue.auth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun enterscreen(navHostController: NavHostController){
+    LaunchedEffect(Unit) {
+        supabaseclient.client.auth.signOut(SignOutScope.GLOBAL)
+
+    }
 
         Column(modifier=Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Row (modifier= Modifier
@@ -42,7 +53,7 @@ fun enterscreen(navHostController: NavHostController){
 
 
             }
-            Button(onClick = { navHostController.navigate(Destinations.signinscreen.route) },modifier= Modifier
+            OutlinedButton(onClick = { navHostController.navigate(Destinations.signinscreen.route) },modifier= Modifier
                 .fillMaxWidth()
                 .padding(start = 10.dp, end = 10.dp, top = 30.dp)) {
                 Text(text = "Sign In",)

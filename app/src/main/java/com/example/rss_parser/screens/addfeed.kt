@@ -34,8 +34,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -68,11 +70,11 @@ fun addfeed(navHostController: NavHostController) {
     val context = LocalContext.current
     val scroll= TopAppBarDefaults.pinnedScrollBehavior()
     val coroutine= rememberCoroutineScope()
+    val haptic= LocalHapticFeedback.current
 
     var isloading by remember{
         mutableStateOf(false)
     }
-
     val connection by connectivityState()
 
     val isConnected = connection === Connectionstatus.Available
@@ -81,6 +83,9 @@ fun addfeed(navHostController: NavHostController) {
         "showimages",
         Context.MODE_PRIVATE
     )
+    var ishapticenabled by remember{
+        mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
+    }
 
 
 
@@ -237,6 +242,9 @@ fun addfeed(navHostController: NavHostController) {
                                                     )
                                                         .show()
                                                     showerror = false
+                                                    if(ishapticenabled) {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    }
                                                     feedlink = ""
                                                     viewModel.getwebsiteurlfromdb()
                                                     isloading = false

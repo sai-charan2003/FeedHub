@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +36,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -63,8 +67,12 @@ fun feeds(navHostController: NavHostController) {
 
 
     val context = LocalContext.current
+    val haptic= LocalHapticFeedback.current
     val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
+    var ishapticenabled by remember{
+        mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
+    }
 
     val viewModel = viewModel<viewmodel>(
         factory = object : ViewModelProvider.Factory {
@@ -76,6 +84,7 @@ fun feeds(navHostController: NavHostController) {
         }
 
     )
+    val isloading by viewModel.isLoading.collectAsState()
     val iscontentready by remember {
         mutableStateOf(false)
     }
@@ -89,6 +98,8 @@ fun feeds(navHostController: NavHostController) {
         if(isConnected) {
             try {
                 viewModel.getwebsiteurlfromdb()
+                Log.d("TAG", "feeds: $isloading")
+
             }catch (e:Exception){
                 when(e){
                     is RestException ->{
@@ -129,13 +140,17 @@ fun feeds(navHostController: NavHostController) {
                     }
                 })
             },
-            floatingActionButton = { FloatingActionButton(onClick = { navHostController.navigate(Destinations.addnewfeed.route) }) {
+            floatingActionButton = { FloatingActionButton(onClick = {
+                if(ishapticenabled) {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+                navHostController.navigate(Destinations.addnewfeed.route) }) {
                 Icon(imageVector = Icons.Outlined.Add, contentDescription = "add feed")
 
             }}
         ) {
             if (isConnected) {
-                if (!viewModel.isLoading.value) {
+                if (!isloading) {
                     if (urls?.isEmpty() == true) {
                         Column(
                             modifier = Modifier.fillMaxSize(),
@@ -165,6 +180,7 @@ fun feeds(navHostController: NavHostController) {
                                             )
                                             Spacer(modifier = Modifier.weight(1f))
                                             IconButton(onClick = {
+
                                                 loading = true
                                                 coroutine.launch {
                                                     try {
@@ -178,6 +194,9 @@ fun feeds(navHostController: NavHostController) {
                                                             }
                                                         viewModel.getwebsiteurlfromdb()
                                                         loading = false
+                                                        if(ishapticenabled) {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        }
 
 
                                                     } catch (e: Exception) {
@@ -202,7 +221,7 @@ fun feeds(navHostController: NavHostController) {
 
                                             }) {
                                                 if (loading) {
-                                                    CircularProgressIndicator()
+                                                    CircularProgressIndicator( strokeCap = StrokeCap.Round)
                                                 }
 
                                                 Icon(
@@ -217,6 +236,11 @@ fun feeds(navHostController: NavHostController) {
                                     )
                             }
                         }
+                    }
+                }
+                else{
+                    Column(modifier=Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        CircularProgressIndicator()
                     }
                 }
             }

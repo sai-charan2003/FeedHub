@@ -35,8 +35,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
@@ -57,6 +59,7 @@ import kotlinx.coroutines.launch
 
 fun settings(navHostController: NavHostController) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
 
@@ -75,6 +78,10 @@ fun settings(navHostController: NavHostController) {
     }
     var inappbrowser by remember{
         mutableStateOf(sharedPreferences.getBoolean("inappbrowser",false))
+    }
+
+    var ishapticenabled by remember{
+        mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
     }
 
 
@@ -137,6 +144,9 @@ fun settings(navHostController: NavHostController) {
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Switch(checked = showimages, onCheckedChange = {
+                                    if(ishapticenabled) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
 
                                     showimages = it
                                     editor.putBoolean("showimages", it)
@@ -162,6 +172,9 @@ fun settings(navHostController: NavHostController) {
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Switch(checked = hours24, onCheckedChange = {
+                                    if(ishapticenabled) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
 
                                     hours24 = it
                                     editor.putBoolean("24hours", it)
@@ -186,9 +199,41 @@ fun settings(navHostController: NavHostController) {
                                 )
                                 Spacer(Modifier.weight(1f))
                                 Switch(checked = inappbrowser, onCheckedChange = {
+                                    if(ishapticenabled) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
 
                                     inappbrowser = it
                                     editor.putBoolean("inappbrowser", it)
+                                    editor.apply()
+                                }, modifier = Modifier.padding(end = 5.dp))
+                            }
+                        }
+                    )
+                    HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
+                    ListItem(
+
+                        {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    "Haptic feedback",
+                                    modifier = Modifier.padding(top = 12.dp),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Switch(checked = ishapticenabled, onCheckedChange = {
+                                    ishapticenabled = it
+                                    if(ishapticenabled) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
+
+
+
+                                    editor.putBoolean("hapticenabled", it)
                                     editor.apply()
                                 }, modifier = Modifier.padding(end = 5.dp))
                             }
@@ -204,7 +249,7 @@ fun settings(navHostController: NavHostController) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "Log Out",
+                                    "Account",
                                     modifier = Modifier.padding(),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
@@ -214,36 +259,10 @@ fun settings(navHostController: NavHostController) {
                             }
 
                         },
-                        modifier=Modifier.clickable { coroutinescope.launch {
-                            try {
-                                supabaseclient.client.auth.signOut(SignOutScope.GLOBAL)
-                                editor.putBoolean("islog", false)
-                                editor.apply()
-                                navHostController.popBackStack()
-                                navHostController.navigate(Destinations.enterscreen.route){
-                                    popUpTo(Destinations.home.route){
-                                        inclusive=true
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                when(e){
-                                    is RestException ->{
-                                        val error = e.message?.substringBefore("URL")
-                                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                                    }
-                                    is HttpRequestTimeoutException ->{
-                                        val error = e.message?.substringBefore("URL")
-                                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                                    }
-                                    is HttpRequestException ->{
-                                        val error = e.message?.substringBefore("URL")
-                                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
+                        modifier=Modifier.clickable {
+                            navHostController.navigate(Destinations.account.route)
 
-
-                            }
-                        } }
+                        }
 
                     )
 

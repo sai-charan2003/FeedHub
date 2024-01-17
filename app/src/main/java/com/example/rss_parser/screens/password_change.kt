@@ -1,7 +1,10 @@
 package com.example.rss_parser.screens
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +20,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -29,7 +33,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +44,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -66,8 +76,28 @@ fun password_change(navHostController: NavHostController) {
     var newpassword by remember {
         mutableStateOf("")
     }
+    val context= LocalContext.current
+    val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
+    val islog = sharedPreferences.getBoolean("islog", false)
+
+
+    var showsummaru by remember {
+        mutableStateOf(false)
+    }
+    val haptic= LocalHapticFeedback.current
+    var ishapticenabled by remember{
+        mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
+    }
     var email by remember {
         mutableStateOf("")
+    }
+    LaunchedEffect(Unit) {
+
+            email=supabaseclient.client.auth.sessionManager.loadSession()?.user?.email.toString()
+
+
+
     }
     var verifyopt by remember {
         mutableStateOf("")
@@ -75,13 +105,14 @@ fun password_change(navHostController: NavHostController) {
     var confirmpassword by remember {
         mutableStateOf("")
     }
+    val Scroll= TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var passwordVisible1 by rememberSaveable { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     var error by remember {
         mutableStateOf(false)
     }
-    var context = LocalContext.current
+
     var isloading by remember {
         mutableStateOf(false)
     }
@@ -95,19 +126,21 @@ fun password_change(navHostController: NavHostController) {
         mutableStateOf(false)
     }
 
-    Scaffold(topBar = {
-        TopAppBar(title = { Text("Reset Password") }, navigationIcon = {
-            IconButton(
-                onClick = { navHostController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = "Back"
-                )
+    Scaffold(
+        modifier= Modifier
+            .fillMaxSize()
+            .nestedScroll(Scroll.nestedScrollConnection),
+        topBar = {
+            LargeTopAppBar(title = { Text("Reset password") }, scrollBehavior = Scroll, navigationIcon = {
+                IconButton(onClick = { navHostController.popBackStack()}) {
+                    Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
+
+                }
+            })
+        }
 
 
-            }
-        })
-    }) {
+    ) {
 
 
         Column(
@@ -118,6 +151,9 @@ fun password_change(navHostController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if(!showpasswordchange) {
+                if(email=="null"){
+                    email=""
+                }
 
 
 
@@ -139,9 +175,7 @@ fun password_change(navHostController: NavHostController) {
 
                             .padding(start = 10.dp, end = 10.dp, bottom = 30.dp),
                         trailingIcon = {
-                            if (sentotp) {
-                                CircularProgressIndicator()
-                            } else {
+
                                 TextButton(onClick = {
                                     sentotp=true
                                     corutine.launch {
@@ -155,6 +189,9 @@ fun password_change(navHostController: NavHostController) {
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                             sentotp=false
+                                            if(ishapticenabled) {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            }
                                         } catch (e: Exception) {
                                             sentotp=false
                                             when (e) {
@@ -184,11 +221,17 @@ fun password_change(navHostController: NavHostController) {
 
 
                                 }) {
-                                    Text("Send OTP")
+                                    if(sentotp){
+                                        CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize),
+                                            strokeCap = StrokeCap.Round)
+                                    }
+                                    else {
+                                        Text("Send OTP")
+                                    }
 
                                 }
                             }
-                        }
+
 
                         )
 
@@ -213,10 +256,10 @@ fun password_change(navHostController: NavHostController) {
 
 
                     )
-                if (isloading) {
-                    CircularProgressIndicator()
-                } else {
-                    Button(onClick = {
+
+                    Button(enabled = !isloading,
+                        modifier=Modifier.animateContentSize(),
+                        onClick = {
                         isloading = true
 
 
@@ -254,18 +297,25 @@ fun password_change(navHostController: NavHostController) {
 
                         }
                     }) {
+                        if(isloading){
+                            CircularProgressIndicator(modifier = Modifier.size(ButtonDefaults.IconSize),
+                                strokeCap = StrokeCap.Round)
+                        }
+                        else {
 
                             Text("Verify OTP")
+                        }
                         
                     }
                 }
-            }
+
             if (showpasswordchange) {
                 OutlinedTextField(
                     value = newpassword,
                     onValueChange = {
                         newpassword = it
                     },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     label = { Text("New Password") },
                     isError = error,
                     modifier = Modifier
@@ -300,6 +350,7 @@ fun password_change(navHostController: NavHostController) {
                     onValueChange = {
                         confirmpassword = it
                     },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     label = { Text("Confirm Password") },
                     isError = error,
                     modifier = Modifier
@@ -331,10 +382,10 @@ fun password_change(navHostController: NavHostController) {
                     singleLine = true,
 
                     )
-                if (isloading) {
-                    CircularProgressIndicator()
-                } else {
-                    Button(onClick = {
+
+                    Button(
+                        enabled = newpassword.isNotBlank()&&confirmpassword.isNotBlank()&&!isloading
+                        ,onClick = {
                         isloading = true
                         if (newpassword != confirmpassword) {
                             error = true
@@ -342,10 +393,6 @@ fun password_change(navHostController: NavHostController) {
                             Toast.makeText(context,"Password not matched",Toast.LENGTH_SHORT).show()
                         }
                         if (newpassword == confirmpassword) {
-
-
-
-
                             corutine.launch {
                                 try {
                                     supabaseclient.client.auth.modifyUser {
@@ -356,14 +403,12 @@ fun password_change(navHostController: NavHostController) {
                                         "Password Changed Successfully",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    navHostController.popBackStack()
-                                    navHostController.navigate(Destinations.enterscreen.route){
-
-                                        popUpTo(Destinations.password_recover.route) { inclusive = true }
-                                        popUpTo(Destinations.enterscreen.route) { inclusive = true }
-
+                                    if(ishapticenabled) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     }
-                                    supabaseclient.client.auth.signOut(SignOutScope.GLOBAL)
+                                    navHostController.popBackStack()
+
+                                    //supabaseclient.client.auth.signOut(SignOutScope.GLOBAL)
 
                                     isloading = false
 
@@ -392,15 +437,22 @@ fun password_change(navHostController: NavHostController) {
 
 
                     }) {
+                        if(isloading){
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(ButtonDefaults.IconSize),
+                                strokeCap = StrokeCap.Round)
+                        }
+                        else {
 
 
-                        Text("Reset Password")
+                            Text("Reset Password")
+                        }
 
 
                     }
 
 
-                }
+
             }
         }
     }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,8 +27,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,9 +46,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +62,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.rss_parser.BuildConfig
 import com.example.rss_parser.R
 import com.example.rss_parser.check_network.Connectionstatus
 import com.example.rss_parser.check_network.connectivityState
@@ -63,6 +70,8 @@ import com.example.rss_parser.inappbrowser.openTab
 import com.example.rss_parser.supabase.client.supabaseclient
 import com.example.rss_parser.ui.theme.RSSparserTheme
 import com.example.rss_parser.viewmodel.viewmodel
+import com.google.ai.client.generativeai.GenerativeModel
+import com.meetup.twain.MarkdownText
 import io.github.jan.supabase.exceptions.HttpRequestException
 import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.postgrest.from
@@ -78,12 +87,27 @@ fun booksmarks(navHostController: NavHostController) {
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+    val generativeModel = GenerativeModel(
+        modelName = "gemini-pro",
+        apiKey = BuildConfig.apiKey
+    )
+    val haptic= LocalHapticFeedback.current
 
     val coroutine= rememberCoroutineScope()
     val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
+
     val showimages by remember {
         mutableStateOf(sharedPreferences.getBoolean("showimages", false))
+    }
+    var ishapticenabled by remember{
+        mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
+    }
+    var aisummarypage by remember {
+        mutableStateOf(false)
+    }
+    var summary by remember {
+        mutableStateOf("")
     }
 
 
@@ -238,12 +262,13 @@ fun booksmarks(navHostController: NavHostController) {
                                                             viewModel.getbookmarksdata()
                                                         }
                                                         isloading = false
-
-
+                                                        if(ishapticenabled) {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        }
 
                                                     }) {
                                                         if (isloading) {
-                                                            CircularProgressIndicator()
+                                                            CircularProgressIndicator( strokeCap = StrokeCap.Round)
                                                         }
 
                                                         Icon(
@@ -259,6 +284,9 @@ fun booksmarks(navHostController: NavHostController) {
 
 
                                                     IconButton(onClick = {
+                                                        if(ishapticenabled) {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        }
                                                         val shareIntent =
                                                             Intent.createChooser(sendIntent, null)
                                                         context.startActivity(shareIntent)
@@ -272,6 +300,19 @@ fun booksmarks(navHostController: NavHostController) {
                                                         )
 
                                                     }
+                                                    IconButton(onClick = { aisummarypage=true;coroutine.launch {
+                                                        if(ishapticenabled) {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        }
+                                                        summary=""
+                                                        val response=generativeModel.generateContent(
+                                                            bookmarks!![it].websitelink)
+                                                        summary=response.text.toString()
+
+                                                    } }) {
+                                                        Icon(painter = painterResource(id = R.drawable.vector), contentDescription = null,modifier=Modifier.size(15.dp))
+
+                                                    }
 
                                                 }
                                             }
@@ -279,6 +320,7 @@ fun booksmarks(navHostController: NavHostController) {
 
                                     },
                                     modifier = Modifier.clickable {
+
                                         if (sharedPreferences.getBoolean("inappbrowser", false)) {
                                             openTab(context, bookmarks!![it].websitelink)
                                         } else {
@@ -303,6 +345,41 @@ fun booksmarks(navHostController: NavHostController) {
                         Text("Please check your internet connection")
 
                     }
+                }
+            }
+            if(aisummarypage){
+                ModalBottomSheet(onDismissRequest = { aisummarypage=false;summary=""},modifier=Modifier.fillMaxSize()) {
+                    if(summary!="") {
+
+                        LazyColumn {
+                            item {
+                                if(ishapticenabled) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
+                                MarkdownText(
+                                    markdown = summary,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    textAlign = TextAlign.Justify,
+                                    modifier=Modifier.padding(15.dp)
+
+                                )
+
+
+
+
+
+
+                            }
+                        }
+                    }
+                    else{
+
+                        Column(modifier=Modifier.fillMaxWidth().padding(top=200.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            Text(text="Summarizing Article",modifier=Modifier.padding(bottom=15.dp))
+                            LinearProgressIndicator(strokeCap = StrokeCap.Round)
+                        }
+                    }
+
                 }
             }
         }
