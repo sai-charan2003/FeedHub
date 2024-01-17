@@ -1,6 +1,6 @@
 # FeedHub
 
-Welcome to FeedHub, a versatile RSS feed aggregator built using Kotlin and Jetpack Compose. It enables users to aggregate articles from various sources by effortlessly adding their RSS feeds.
+FeedHub is a versatile RSS feed aggregator built using Kotlin and Jetpack Compose. It empowers users to effortlessly compile articles from various sources simply by adding their RSS feeds. This app leverages Google Gemini AI to provide one-click article summaries, helping you stay informed with maximum efficiency.
 
 ## Overview
 
@@ -9,13 +9,14 @@ FeedHub simplifies the process of collecting articles from favorite sources. Key
 - Adding and managing RSS feeds from diverse websites.
 - Fetching articles from added sources utilizing Kotlin with Jetpack Compose.
 - **Supabase Integration:** Manage storage of website links and bookmarks with Supabase while utilizing Supabase authentication for user login and creation.
-
+- **Gemini AI:** Uses Google's latest gemini AI to summarize the articles.
 - **Predictive Back Gesture Integration:** Enhance user experience by integrating the predictive back gesture introduced by Google with Android 14.
 
 
 ## TechStack
 - Kotlin
 - Jetpack Compose
+- Gemini AI
 - [RSS-Parser](https://github.com/prof18/RSS-Parser)
 - [Supabase](https://supabase.com/)
 
