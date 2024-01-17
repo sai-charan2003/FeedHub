@@ -55,7 +55,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.credentials.CredentialManager
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -148,7 +148,7 @@ fun signup(navHostController: NavHostController){
         }
 
     }
-    val credentialManager = CredentialManager.create(context)
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -252,7 +252,7 @@ fun signup(navHostController: NavHostController){
 
                     try {
                         loading = true
-                        supabaseclient.client.auth.signInWith(Email) {
+                        supabaseclient.client.auth.signUpWith(Email) {
                             email = username
                             password = userpassword
                         }

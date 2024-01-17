@@ -4,10 +4,7 @@ import android.app.Activity
 import android.content.Context
 
 import android.util.Log
-import androidx.credentials.CreatePasswordRequest
-import androidx.credentials.CredentialManager
-import androidx.credentials.exceptions.CreateCredentialCancellationException
-import androidx.credentials.exceptions.CreateCredentialException
+
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -49,7 +46,7 @@ class viewmodel(context: Context):ViewModel() {
         callFactory = OkHttpClient(),
         charset = Charsets.UTF_8,
     )
-    val credentialManager = CredentialManager.create(context)
+
 
 
 
@@ -78,25 +75,7 @@ class viewmodel(context: Context):ViewModel() {
             }
         }
     }
-    suspend fun saveCredential(activity: Activity, username: String, password: String) {
 
-        try {
-            Log.d("TAG", "saveCredential: hi")
-
-            credentialManager.createCredential(
-                request = CreatePasswordRequest(username, password),
-                activity = activity,
-            )
-            Log.d("CredentialTest", "Credentials successfully added")
-        }
-        catch (e: CreateCredentialCancellationException) {
-            //do nothing, the user chose not to save the credential
-            Log.d("CredentialTest", "User cancelled the save")
-        }
-        catch (e: CreateCredentialException) {
-            Log.d("CredentialTest", "Credential save error", e)
-        }
-    }
 
 
 

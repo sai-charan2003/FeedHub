@@ -26,7 +26,7 @@ android {
 
         applicationId = "com.example.rss_parser"
         minSdk = 26
-        compileSdkPreview="UpsideDownCake"
+
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -126,7 +126,5 @@ dependencies {
 
     implementation("com.github.mukeshsolanki:MarkdownView-Android:2.0.0")
     implementation("com.meetup:twain:0.2.2")
-    implementation("androidx.credentials:credentials:1.2.0-alpha01")
-
-    implementation("androidx.credentials:credentials-play-services-auth:1.2.0-alpha01")
+    
 }
