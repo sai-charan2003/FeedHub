@@ -85,6 +85,7 @@ class viewmodel(context: Context):ViewModel() {
 
     fun getData(urls: List<String>) = viewModelScope.launch {
         _isloading.value=true
+        Log.d("TAG", "homescreen: completed")
 
         val fetchedLinks = mutableListOf<String>()
         val fetchedTitles = mutableListOf<String>()
@@ -122,6 +123,7 @@ class viewmodel(context: Context):ViewModel() {
         _isloading.value=false
     }
     fun getwebsiteurlfromdb(){
+
         _isloading.value=true
 
         var websites: List<String>
@@ -144,10 +146,14 @@ class viewmodel(context: Context):ViewModel() {
         catch (e:Exception){
             Log.d("TAG", "getwebsiteurlfromdb: ${e.message}")
         }
+        Log.d("TAG", "getwebsiteurlfromdb: ${websiteUrls.value}")
+
         _isloading.value=false
+
 
     }
     fun getbookmarksdata(){
+        Log.d("TAG", "getbookmarksdata: hi")
 
 
         var bookmarksdat: List<bookmarkdatabase>

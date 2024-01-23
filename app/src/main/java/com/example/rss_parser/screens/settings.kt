@@ -154,6 +154,18 @@ fun settings(navHostController: NavHostController) {
                                 }, modifier = Modifier.padding(end = 5.dp))
                             }
                         }
+                        ,
+                        modifier=Modifier.clickable {
+                            if(ishapticenabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+                            showimages = !showimages
+                            editor.putBoolean("showimages", showimages)
+                            editor.apply()
+
+
+
+                        }
                     )
 
                     HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
@@ -181,7 +193,18 @@ fun settings(navHostController: NavHostController) {
                                     editor.apply()
                                 }, modifier = Modifier.padding(end = 5.dp))
                             }
+                        },
+                        modifier=Modifier.clickable {
+                            if(ishapticenabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+
+                            hours24 = !hours24
+                            editor.putBoolean("24hours", hours24)
+                            editor.apply()
+
                         }
+
                     )
                     HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
                     ListItem(
@@ -208,6 +231,16 @@ fun settings(navHostController: NavHostController) {
                                     editor.apply()
                                 }, modifier = Modifier.padding(end = 5.dp))
                             }
+                        },
+                        modifier=Modifier.clickable {
+                            if(ishapticenabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+
+                            inappbrowser = !inappbrowser
+                            editor.putBoolean("inappbrowser", inappbrowser)
+                            editor.apply()
+
                         }
                     )
                     HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
@@ -237,6 +270,18 @@ fun settings(navHostController: NavHostController) {
                                     editor.apply()
                                 }, modifier = Modifier.padding(end = 5.dp))
                             }
+                        },
+                        modifier=Modifier.clickable {
+                            ishapticenabled = !ishapticenabled
+                            if(ishapticenabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+
+
+
+                            editor.putBoolean("hapticenabled", ishapticenabled)
+                            editor.apply()
+
                         }
                     )
                     HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))

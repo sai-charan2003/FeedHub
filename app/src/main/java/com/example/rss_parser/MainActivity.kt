@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
         val sharedPreferences: SharedPreferences =
             getSharedPreferences("showimages", Context.MODE_PRIVATE)
         val islog=sharedPreferences.getBoolean("islog",false)
+        
 
 
         super.onCreate(savedInstanceState)
