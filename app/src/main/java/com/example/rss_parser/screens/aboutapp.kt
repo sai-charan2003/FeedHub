@@ -131,7 +131,7 @@ fun aboutapp(navHostController: NavHostController) {
 
                         Column {
                             Text("Version")
-                            Text("2.0", fontWeight = FontWeight.ExtraLight)
+                            Text(version, fontWeight = FontWeight.ExtraLight)
                         }
                         Spacer(Modifier.weight(1f))
                         if(updateavailable) {
