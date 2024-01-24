@@ -112,6 +112,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.Async
 
 
@@ -164,10 +165,6 @@ fun homescreen(navHostController: NavHostController) {
     val isloading by viewModel.isLoading.collectAsState()
     finalloading = isloading || homeloading == true
     val swiperefresh = rememberSwipeRefreshState(isRefreshing = finalloading)
-    var selectedid by remember {
-        mutableStateOf(0)
-    }
-
 
     val rssData by viewModel.rssData.observeAsState(
         RssData(
@@ -225,59 +222,59 @@ fun homescreen(navHostController: NavHostController) {
 
 
     LaunchedEffect(urls) {
-        val job = launch {
+        withContext(this.coroutineContext) {
+            val job = launch {
 
-            viewModel.setLoading(true)
-            if (isConnected) {
-                try {
-                    supabaseclient.client.auth.currentAccessTokenOrNull()
-                } catch (e: Exception) {
-                    when (e) {
-                        is RestException -> {
-                            val error = e.message?.substringBefore("URL")
-                            Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                        }
+                if (isConnected) {
+                    viewModel.getwebsiteurlfromdb()
+                    try {
+                        supabaseclient.client.auth.currentAccessTokenOrNull()
+                    } catch (e: Exception) {
+                        when (e) {
+                            is RestException -> {
+                                val error = e.message?.substringBefore("URL")
+                                Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
+                            }
 
-                        is HttpRequestTimeoutException -> {
-                            val error = e.message?.substringBefore("URL")
-                            Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                        }
+                            is HttpRequestTimeoutException -> {
+                                val error = e.message?.substringBefore("URL")
+                                Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
+                            }
 
-                        is HttpRequestException -> {
-                            val error = e.message?.substringBefore("URL")
-                            Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
+                            is HttpRequestException -> {
+                                val error = e.message?.substringBefore("URL")
+                                Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
+
+                    viewModel.getbookmarksdata()
+                    Log.d("checking", "$isloading ")
+
+                    if (viewModel.urlsloaded.value) {
+
+                        if (urls?.isEmpty() == false) {
+                            withContext(this.coroutineContext) {
+                                urls?.let { viewModel.getData(it) }
+                            }
+                            finalloading = false
+                            iscontentloaded = true
+                            dataempty = false
+                        } else {
+
+                            iscontentloaded = true
+                            finalloading = false
+                            dataempty = true
+                        }
+                    }
+
+
                 }
-                viewModel.getwebsiteurlfromdb()
-                viewModel.getbookmarksdata()
-                Log.d("TAG", "homescreen: $urls")
-                Log.d("TAG", "homescreen: $finalloading")
-                urls?.let { viewModel.getData(it) }
-
-
-
-
-
             }
         }
 
-
-
-        if(job.isCompleted) {
-
-
-            dataempty = urls?.isEmpty() == true
-        }
-
-
     }
     val uriHandler = LocalUriHandler.current
-
-    if (observedLinks.isNotEmpty() || dataempty) {
-        iscontentloaded = true
-    }
-
     RSSparserTheme {
         Surface {
 
@@ -337,10 +334,13 @@ fun homescreen(navHostController: NavHostController) {
                 }, modifier = Modifier.padding(it)) {
 
                     if (isConnected) {
-                        if (!viewModel.isLoading.value) {
+                        if (isloading==false) {
+
 
 
                             if (iscontentloaded) {
+                                Log.d("TAG", "checkforerrors: hi")
+
                                 if (dataempty) {
 
                                     Column(
@@ -640,27 +640,19 @@ fun homescreen(navHostController: NavHostController) {
                                 }
 
 
-                            } else {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-
-
-                                }
                             }
 
                         }
-                        else{
+                        else {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ){
-                                
-                            }
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
 
+
+
+                            }
                         }
 
                     }else {

@@ -21,6 +21,7 @@ import com.prof18.rssparser.model.RssChannel
 import io.github.jan.supabase.postgrest.from
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -34,6 +35,8 @@ class viewmodel(context: Context):ViewModel() {
 
     private var _isloading= MutableStateFlow(true)
     var isLoading=_isloading.asStateFlow()
+    private var _urlsloaded= MutableStateFlow(false)
+    var urlsloaded=_urlsloaded.asStateFlow()
     var websiterb = mutableListOf<website_supabase>()
     private val _websiteUrls = MutableLiveData<List<String>>()
     val websiteUrls: LiveData<List<String>> = _websiteUrls
@@ -85,7 +88,8 @@ class viewmodel(context: Context):ViewModel() {
 
     fun getData(urls: List<String>) = viewModelScope.launch {
         _isloading.value=true
-        Log.d("TAG", "homescreen: completed")
+        Log.d("TAG", "getData: i am here")
+
 
         val fetchedLinks = mutableListOf<String>()
         val fetchedTitles = mutableListOf<String>()
@@ -120,9 +124,11 @@ class viewmodel(context: Context):ViewModel() {
 
         )
         )
+        Log.d("TAG", "getData: i am out")
         _isloading.value=false
     }
     fun getwebsiteurlfromdb(){
+        _urlsloaded.value=false
 
         _isloading.value=true
 
@@ -137,6 +143,12 @@ class viewmodel(context: Context):ViewModel() {
 
                     websites=fetchedUrls.map { it.websitelink }
                     _websiteUrls.postValue(websites )
+                    delay(1000)
+                    if(websites.isEmpty()==true){
+                        Log.d("hi", "getwebsiteurlfromdb: hi")
+                        _isloading.value=false
+
+                    }
 
                 }
 
@@ -146,14 +158,17 @@ class viewmodel(context: Context):ViewModel() {
         catch (e:Exception){
             Log.d("TAG", "getwebsiteurlfromdb: ${e.message}")
         }
-        Log.d("TAG", "getwebsiteurlfromdb: ${websiteUrls.value}")
 
-        _isloading.value=false
+
+
+        _urlsloaded.value=true
+
+
 
 
     }
     fun getbookmarksdata(){
-        Log.d("TAG", "getbookmarksdata: hi")
+
 
 
         var bookmarksdat: List<bookmarkdatabase>

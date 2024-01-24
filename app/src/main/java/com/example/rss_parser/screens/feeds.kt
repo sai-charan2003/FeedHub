@@ -118,6 +118,9 @@ fun feeds(navHostController: NavHostController) {
 
             }
         }
+        if(viewModel.urlsloaded.value==true){
+            viewModel.setLoading(false)
+        }
     }
 
 
