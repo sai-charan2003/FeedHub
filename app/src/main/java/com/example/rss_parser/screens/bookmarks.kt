@@ -98,7 +98,7 @@ fun booksmarks(navHostController: NavHostController) {
         context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
 
     val showimages by remember {
-        mutableStateOf(sharedPreferences.getBoolean("showimages", false))
+        mutableStateOf(sharedPreferences.getBoolean("showimages", true))
     }
     var ishapticenabled by remember{
         mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))

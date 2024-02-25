@@ -13,6 +13,9 @@ sealed class Destinations(val route:String) {
     object signinscreen:Destinations("signin")
     object password_recover:Destinations("password/{email}")
     object account:Destinations("account")
+    object appiconchange:Destinations("appiconchange")
+    object search:Destinations("search")
+
 
 
 

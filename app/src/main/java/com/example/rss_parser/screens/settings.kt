@@ -1,21 +1,24 @@
 package com.example.rss_parser.screens
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.net.Uri
-import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,18 +44,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.navigation.NavHostController
 import com.example.rss_parser.Navigation.Destinations
-import com.example.rss_parser.supabase.client.supabaseclient
+
 import com.example.rss_parser.ui.theme.RSSparserTheme
-import io.github.jan.supabase.exceptions.HttpRequestException
-import io.github.jan.supabase.exceptions.RestException
-import io.github.jan.supabase.gotrue.SignOutScope
-import io.github.jan.supabase.gotrue.auth
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,8 +63,31 @@ fun settings(navHostController: NavHostController) {
 
     val editor = sharedPreferences.edit()
     var showimages by remember {
-        mutableStateOf(sharedPreferences.getBoolean("showimages", false))
+        mutableStateOf(sharedPreferences.getBoolean("showimages", true))
     }
+    var showDropdown by remember { mutableStateOf(false) }
+    var compactview by remember {
+        mutableStateOf(sharedPreferences.getBoolean("compactview",true))
+    }
+    var selecteditem by remember {
+        mutableStateOf(sharedPreferences.getString("selectedview","compact"))
+    }
+    val backgroundModifier = when (selecteditem) {
+        "Compact" -> Modifier.background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f))
+        "Card" -> Modifier.background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f))
+        "Text-only"-> Modifier.background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f))
+        else -> Modifier
+    }
+
+
+
+    var showtop by remember {
+        mutableStateOf(sharedPreferences.getBoolean("showtop", true))
+    }
+    var isDraggin by remember {
+        mutableStateOf(false)
+    }
+
     var coroutinescope= rememberCoroutineScope()
     var isSystemInDarkTheme = isSystemInDarkTheme()
     var darkmode by remember {
@@ -83,9 +104,13 @@ fun settings(navHostController: NavHostController) {
     var ishapticenabled by remember{
         mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
     }
+    val packageManager: PackageManager = context.packageManager
+
+
 
 
     RSSparserTheme() {
+
         Scaffold(modifier= Modifier
             .fillMaxSize()
             .nestedScroll(Scroll.nestedScrollConnection),topBar = {
@@ -106,6 +131,7 @@ fun settings(navHostController: NavHostController) {
                 modifier = Modifier
                     .padding(it)
                     .fillMaxSize()
+
             ) {
 
                 item {
@@ -127,6 +153,68 @@ fun settings(navHostController: NavHostController) {
                         },
                         modifier = Modifier.clickable { navHostController.navigate(Destinations.feeds.route) }
                     )
+                    HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
+                    ListItem(
+
+
+                        {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Change app icon",
+                                    modifier = Modifier.padding(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+
+
+                            }
+
+                        },
+                        modifier=Modifier.clickable { navHostController.navigate(Destinations.appiconchange.route) }
+
+                    )
+                    HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
+                    ListItem(
+
+                        {
+                            Row(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    "Show scroll to top",
+                                    modifier = Modifier.padding(top = 12.dp),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.weight(1f))
+                                Switch(checked = showtop, onCheckedChange = {
+                                    if(ishapticenabled) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
+
+                                    showtop = it
+                                    editor.putBoolean("showtop", it)
+                                    editor.apply()
+                                }, modifier = Modifier.padding(end = 5.dp))
+                            }
+                        }
+                        ,
+                        modifier=Modifier.clickable {
+                            if(ishapticenabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
+                            showtop= !showtop
+                            editor.putBoolean("showtop", showtop)
+                            editor.apply()
+
+
+
+                        }
+                    )
 
                     HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
                     ListItem(
@@ -137,36 +225,109 @@ fun settings(navHostController: NavHostController) {
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 Text(
-                                    "Show Images",
+                                    "Feed View",
                                     modifier = Modifier.padding(top = 12.dp),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(Modifier.weight(1f))
-                                Switch(checked = showimages, onCheckedChange = {
-                                    if(ishapticenabled) {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                TextButton(onClick = {showDropdown=true}, contentPadding = PaddingValues(3.dp)){
+
+                                    selecteditem?.let { it1 -> Text(it1) }
+                                    Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+                                    MaterialTheme(shapes = MaterialTheme.shapes.copy(extraSmall = RoundedCornerShape(16.dp))) {
+                                        DropdownMenu(
+                                            expanded = showDropdown,
+
+                                            onDismissRequest = { showDropdown = false },
+
+
+
+                                            ) {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        "Compact",
+                                                        textAlign = TextAlign.Center
+                                                    )
+                                                },
+                                                onClick = {
+                                                    showDropdown=false
+                                                    editor.putString("selectedview","Compact");
+                                                    editor.apply()
+                                                    editor.putBoolean("showimages",true)
+                                                    editor.apply()
+                                                    selecteditem="Compact"
+
+                                                },
+                                                modifier = if (selecteditem == "Compact") {
+                                                    Modifier.background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f))
+                                                } else {
+                                                    Modifier
+                                                }
+
+
+
+
+
+                                            )
+                                            DropdownMenuItem(text = {
+                                                Text(
+                                                    "Text-Only",
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }, onClick = {
+                                                showDropdown=false
+                                                editor.putString("selectedview","Text-Only");
+                                                editor.apply()
+                                                editor.putBoolean("showimages",false)
+                                                editor.apply()
+                                                selecteditem="Text-Only"
+
+                                            },
+                                                modifier = if (selecteditem == "Text-Only") {
+                                                    Modifier.background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f))
+                                                } else {
+                                                    Modifier
+                                                }
+
+
+                                            )
+                                            DropdownMenuItem(text = {
+                                                Text(
+                                                    "Card",
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }, onClick = {
+                                                showDropdown=false
+                                                editor.putString("selectedview","Card");
+                                                editor.apply()
+                                                editor.putBoolean("showimages",true)
+                                                editor.apply()
+                                                selecteditem="Card"
+
+                                            },
+                                                modifier = if (selecteditem == "Card") {
+                                                    Modifier.background(MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.3f))
+                                                } else {
+                                                    Modifier
+                                                }
+
+                                            )
+
+                                        }
                                     }
 
-                                    showimages = it
-                                    editor.putBoolean("showimages", it)
-                                    editor.apply()
-                                }, modifier = Modifier.padding(end = 5.dp))
+                                }
+
                             }
                         }
                         ,
                         modifier=Modifier.clickable {
-                            if(ishapticenabled) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            }
-                            showimages = !showimages
-                            editor.putBoolean("showimages", showimages)
-                            editor.apply()
-
-
-
+                            showDropdown=true
                         }
                     )
+
 
                     HorizontalDivider(modifier=Modifier.padding(start=10.dp,end=10.dp))
                     ListItem(
@@ -338,6 +499,8 @@ fun settings(navHostController: NavHostController) {
 
 
 
+
+
                 }
 
 
@@ -346,3 +509,5 @@ fun settings(navHostController: NavHostController) {
 
     }
 }
+
+

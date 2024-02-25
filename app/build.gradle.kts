@@ -12,6 +12,8 @@ plugins {
 
 }
 
+
+
 android {
     namespace = "com.example.rss_parser"
     compileSdk = 34
@@ -28,14 +30,15 @@ android {
         minSdk = 26
 
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
 
         }
+
 
 
         buildConfigField("String","SUPABASE_ANON_KEY","\"$key\"")
@@ -89,6 +92,7 @@ dependencies {
     implementation("androidx.compose.material3:material3-android:1.2.0-beta01")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.browser:browser:1.7.0")
+    implementation("com.google.android.material:material:1.11.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -100,31 +104,34 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("com.prof18.rssparser:rssparser:6.0.6")
-    implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.6.0")
     implementation("io.coil-kt:coil-compose:2.5.0")
     annotationProcessor ("androidx.room:room-compiler:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.navigation:navigation-compose:2.7.6")
     implementation ("androidx.datastore:datastore-preferences:1.0.0")
-    implementation("androidx.compose.material:material-icons-extended-android:1.5.4")
-    implementation("com.google.accompanist:accompanist-swiperefresh:0.27.0")
+    implementation("androidx.compose.material:material-icons-extended-android:1.6.0")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
     implementation ("com.google.dagger:hilt-android:2.48")
 
 
 
-    kapt ("com.google.dagger:hilt-compiler:2.44")
+    kapt ("com.google.dagger:hilt-compiler:2.47")
     implementation ("androidx.hilt:hilt-navigation-compose:1.1.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation ("io.github.jan-tennert.supabase:postgrest-kt:2.0.2")
-    implementation ("io.github.jan-tennert.supabase:realtime-kt:2.0.2")
-    implementation ("io.github.jan-tennert.supabase:storage-kt:2.0.2")
-    implementation("io.github.jan-tennert.supabase:gotrue-kt:2.0.2")
-    implementation ("io.ktor:ktor-client-core:2.3.7")
-    implementation ("io.ktor:ktor-utils:2.3.7")
+    implementation ("io.github.jan-tennert.supabase:postgrest-kt:2.1.3")
+    implementation ("io.github.jan-tennert.supabase:realtime-kt:2.1.3")
+    implementation ("io.github.jan-tennert.supabase:storage-kt:2.1.3")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:2.1.3")
+    implementation ("io.ktor:ktor-client-core:2.3.8")
+    implementation ("io.ktor:ktor-utils:2.3.8")
     implementation("io.ktor:ktor-client-cio:2.3.7")
     implementation("com.google.ai.client.generativeai:generativeai:0.1.2")
 
     implementation("com.github.mukeshsolanki:MarkdownView-Android:2.0.0")
     implementation("com.meetup:twain:0.2.2")
+    implementation ("androidx.work:work-runtime-ktx:2.9.0")
+    implementation ("com.squareup.picasso:picasso:2.8")
+    implementation ("io.github.kevinnzou:compose-webview-multiplatform:1.8.8")
     
 }

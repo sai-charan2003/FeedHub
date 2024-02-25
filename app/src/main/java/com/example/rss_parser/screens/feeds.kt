@@ -41,6 +41,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -56,8 +57,13 @@ import io.github.jan.supabase.exceptions.HttpRequestException
 import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.postgrest.from
 import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @Composable
@@ -84,44 +90,22 @@ fun feeds(navHostController: NavHostController) {
         }
 
     )
-    val isloading by viewModel.isLoading.collectAsState()
+
     val iscontentready by remember {
         mutableStateOf(false)
     }
     val coroutine= rememberCoroutineScope()
     val connection by connectivityState()
+    val isdeleted by remember {
+        mutableStateOf(false)
+    }
 
     val isConnected = connection === Connectionstatus.Available
-    val urls by viewModel.websiteUrls.observeAsState()
-    val website=urls
-    LaunchedEffect(isConnected){
-        if(isConnected) {
-            try {
-                viewModel.getwebsiteurlfromdb()
-                Log.d("TAG", "feeds: $isloading")
+    val urls by viewModel.allwebsites.observeAsState()
 
-            }catch (e:Exception){
-                when(e){
-                    is RestException ->{
-                        val error = e.message?.substringBefore("URL")
-                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                    }
-                    is HttpRequestTimeoutException ->{
-                        val error = e.message?.substringBefore("URL")
-                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                    }
-                    is HttpRequestException ->{
-                        val error = e.message?.substringBefore("URL")
-                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                    }
-                }
 
-            }
-        }
-        if(viewModel.urlsloaded.value==true){
-            viewModel.setLoading(false)
-        }
-    }
+
+
 
 
 
@@ -152,8 +136,9 @@ fun feeds(navHostController: NavHostController) {
 
             }}
         ) {
-            if (isConnected) {
-                if (!isloading) {
+
+
+
                     if (urls?.isEmpty() == true) {
                         Column(
                             modifier = Modifier.fillMaxSize(),
@@ -175,27 +160,52 @@ fun feeds(navHostController: NavHostController) {
                                 }
 
                                 ListItem(
+
                                     {
+
                                         Row {
                                             Text(
-                                                text = urls!![it],
-                                                modifier = Modifier.padding(top = 12.dp)
+                                                text = urls!![it].websitelink,
+                                                modifier = Modifier.padding(top = 12.dp).weight(1f),
+                                                overflow = TextOverflow.Ellipsis,
+
+                                                maxLines = 1
                                             )
-                                            Spacer(modifier = Modifier.weight(1f))
+
                                             IconButton(onClick = {
+
 
                                                 loading = true
                                                 coroutine.launch {
+
                                                     try {
 
 
-                                                        supabaseclient.client.from("website")
-                                                            .delete {
-                                                                filter {
-                                                                    eq("websitelink", urls!![it])
+
+                                                        withContext(Dispatchers.IO) {
+                                                            supabaseclient.client.from("website")
+                                                                .delete {
+                                                                    filter {
+                                                                        eq("websitelink", urls!![it].websitelink)
+                                                                    }
                                                                 }
-                                                            }
-                                                        viewModel.getwebsiteurlfromdb()
+                                                        }
+
+                                                        viewModel.delete(urls!![it].websitelink)
+                                                        viewModel.websitedelete(urls!![it].websitelink)
+
+
+
+
+
+
+
+
+
+
+
+
+
                                                         loading = false
                                                         if(ishapticenabled) {
                                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -219,7 +229,10 @@ fun feeds(navHostController: NavHostController) {
                                                             }
                                                         }
                                                     }
+
+                                                    viewModel.delete(urls!![it].websitelink)
                                                 }
+
 
 
                                             }) {
@@ -240,21 +253,8 @@ fun feeds(navHostController: NavHostController) {
                             }
                         }
                     }
-                }
-                else{
-                    Column(modifier=Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-            else{
-                Column(modifier=Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painter = painterResource(id = R.drawable.round_wifi_off_24), contentDescription = "no internet")
-                    Text("Couldn't connect to internet.")
-                    Text("Please check your internet connection")
 
-                }
-            }
+
         }
 
     }

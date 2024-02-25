@@ -36,6 +36,8 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(DelicateCoroutinesApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("TAG", "onCreate: hi from main")
+
 
 
         val sharedPreferences: SharedPreferences =

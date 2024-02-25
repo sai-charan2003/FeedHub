@@ -19,20 +19,79 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.MyApp.MySplash">
-
-
-
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
 
         </activity>
+        <activity-alias
+            android:name=".MainActivityorange"
+            android:exported="true"
+            android:enabled="false"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher1"
+
+            android:roundIcon="@mipmap/ic_launcher1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivityblack"
+            android:exported="true"
+            android:enabled="false"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_black"
+            android:roundIcon="@mipmap/ic_launcher_black_round">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivitywhite"
+            android:exported="true"
+            android:enabled="false"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_white"
+            android:roundIcon="@mipmap/ic_launcher_white_round">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivitymint"
+            android:exported="true"
+            android:enabled="false"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_mint"
+            android:roundIcon="@mipmap/ic_launcher_mint_round">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivitytwilight"
+            android:exported="true"
+            android:enabled="false"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_twilight"
+            android:roundIcon="@mipmap/ic_launcher_twilight_round">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+
 
     </application>
     <queries>

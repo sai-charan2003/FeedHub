@@ -266,6 +266,8 @@ fun signup(navHostController: NavHostController){
                                     editor.apply()
                                     editor.putBoolean("islog", true)
                                     editor.apply()
+                                    viewModel.updatedatabase()
+                                    viewModel.updatefeeddatabase()
 
                                     navHostController.navigate(Destinations.home.route){
 

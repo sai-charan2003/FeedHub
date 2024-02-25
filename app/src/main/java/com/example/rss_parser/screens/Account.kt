@@ -39,9 +39,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.rss_parser.Navigation.Destinations
 import com.example.rss_parser.supabase.client.supabaseclient
+import com.example.rss_parser.viewmodel.viewmodel
 import io.github.jan.supabase.exceptions.HttpRequestException
 import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.gotrue.SignOutScope
@@ -55,8 +59,18 @@ fun account(navHostController: NavHostController){
     var useremail by remember {
         mutableStateOf("")
     }
-    var coroutinescope= rememberCoroutineScope()
     val context= LocalContext.current
+    val viewModel = viewModel<viewmodel>(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return viewmodel(
+                    context
+                ) as T
+            }
+        }
+    )
+    var coroutinescope= rememberCoroutineScope()
+
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
@@ -124,7 +138,11 @@ fun account(navHostController: NavHostController){
                     Text(text = "Log Out")
                 },modifier= Modifier
                     .clickable {
+                        viewModel.cleardb()
+                        viewModel.clearwebsites()
+
                         coroutinescope.launch {
+
                             try {
                                 supabaseclient.client.auth.signOut(SignOutScope.GLOBAL)
                                 editor.putBoolean("islog", false)

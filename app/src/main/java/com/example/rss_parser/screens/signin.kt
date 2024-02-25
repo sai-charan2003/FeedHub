@@ -131,7 +131,7 @@ fun signin(navHostController: NavHostController) {
         mutableStateOf(false)
     }
 
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val viewModel = viewModel<viewmodel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -272,6 +272,7 @@ fun signin(navHostController: NavHostController) {
                                         editor.putBoolean("islog", true)
                                         editor.apply()
 
+
                                         navHostController.navigate(Destinations.home.route){
 
                                             popUpTo(Destinations.signinscreen.route) { inclusive = true }
@@ -303,6 +304,7 @@ fun signin(navHostController: NavHostController) {
                             }
                             loading = false
                         } catch (e: Exception) {
+                            Log.d("TAG", "signin: $e")
                             loading = false
                             when(e){
                                 is RestException ->{

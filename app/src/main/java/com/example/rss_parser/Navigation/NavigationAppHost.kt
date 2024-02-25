@@ -24,11 +24,13 @@ import com.example.rss_parser.screens.aboutapp
 import com.example.rss_parser.screens.aboutdeveloper
 import com.example.rss_parser.screens.account
 import com.example.rss_parser.screens.addfeed
+import com.example.rss_parser.screens.appiconchange
 import com.example.rss_parser.screens.booksmarks
 import com.example.rss_parser.screens.enterscreen
 import com.example.rss_parser.screens.feeds
 import com.example.rss_parser.screens.homescreen
 import com.example.rss_parser.screens.password_change
+import com.example.rss_parser.screens.search
 
 import com.example.rss_parser.screens.settings
 import com.example.rss_parser.screens.signin
@@ -126,6 +128,12 @@ fun NavigationAppHost(navHostController: NavHostController) {
             composable(Destinations.account.route){
                 account(navHostController = navHostController)
             }
+            composable(Destinations.appiconchange.route){
+                appiconchange(navHostController)
+            }
+            composable(Destinations.search.route){
+                search(navHostController = navHostController)
+            }
 
 
         }
@@ -211,6 +219,12 @@ fun NavigationAppHost(navHostController: NavHostController) {
             }
             composable(Destinations.account.route){
                 account(navHostController = navHostController)
+            }
+            composable(Destinations.appiconchange.route){
+                appiconchange(navHostController)
+            }
+            composable(Destinations.search.route){
+                search(navHostController = navHostController)
             }
 
 
