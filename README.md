@@ -22,8 +22,9 @@ FeedHub simplifies the process of collecting articles from favorite sources. Key
 
 ## Screenshots
 ![822shots_so](https://github.com/sai-charan2003/FeedHub/assets/83913880/78f01c8d-0da5-4d6a-abf5-f21bd264dde8)
-![134shots_so](https://github.com/sai-charan2003/FeedHub/assets/83913880/649d55d9-6456-4d5c-b7fe-413bcecf9a5e)
-![960shots_so](https://github.com/sai-charan2003/FeedHub/assets/83913880/4f2489b2-d936-4ab1-be88-1cc1b5c122ff)
-![129shots_so](https://github.com/sai-charan2003/FeedHub/assets/83913880/e10409a1-dbff-497a-b09c-0309fbd7c32a)
+![884shots_so](https://github.com/sai-charan2003/FeedHub/assets/83913880/da4b0b66-25a0-4f7e-8df2-5ac3cc9d0abc)
+![828shots_so](https://github.com/sai-charan2003/FeedHub/assets/83913880/c9dec1e3-4bff-47b1-a7c3-34b27d308efd)
+![949shots_so](https://github.com/sai-charan2003/FeedHub/assets/83913880/03a49feb-2034-463c-9e92-6d7c35ce3fff)
+
 
 
