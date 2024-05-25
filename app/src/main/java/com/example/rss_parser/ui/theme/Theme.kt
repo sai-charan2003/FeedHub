@@ -37,12 +37,17 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
+private val AmoledColorScheme = darkColorScheme(
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80,
+    background = Color.Black
+)
 
 
 @Composable
 fun RSSparserTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit

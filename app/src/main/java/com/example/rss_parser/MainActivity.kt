@@ -24,8 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.rss_parser.Navigation.Destinations
 import com.example.rss_parser.Navigation.NavigationAppHost
-import com.example.rss_parser.screens.homescreen
-import com.example.rss_parser.screens.signup
+
 
 import com.example.rss_parser.ui.theme.RSSparserTheme
 import io.github.jan.supabase.gotrue.auth
@@ -36,36 +35,21 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(DelicateCoroutinesApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d("TAG", "onCreate: hi from main")
 
-
-
-        val sharedPreferences: SharedPreferences =
-            getSharedPreferences("showimages", Context.MODE_PRIVATE)
-        val islog=sharedPreferences.getBoolean("islog",false)
         
 
 
         super.onCreate(savedInstanceState)
         installSplashScreen()
         setContent {
-
-
-
-
                     RSSparserTheme() {
                     WindowCompat.setDecorFitsSystemWindows(window, false)
 
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
+
                     ) {
-                        LaunchedEffect(Unit){
-
-
-                        }
-
-
 
                         val navController = rememberNavController()
 

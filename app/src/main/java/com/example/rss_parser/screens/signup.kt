@@ -1,9 +1,13 @@
 package com.example.rss_parser.screens
 
+import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -55,6 +59,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -64,23 +70,91 @@ import com.example.rss_parser.Navigation.Destinations
 import com.example.rss_parser.R
 import com.example.rss_parser.supabase.client.supabaseclient
 import com.example.rss_parser.viewmodel.viewmodel
+
+import com.google.android.gms.tasks.Task
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+
+import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
+import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
+import io.github.jan.supabase.compose.auth.composeAuth
 import io.github.jan.supabase.exceptions.HttpRequestException
 import io.github.jan.supabase.exceptions.RestException
 import io.github.jan.supabase.gotrue.SessionStatus
 import io.github.jan.supabase.gotrue.SignOutScope
 import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.gotrue.providers.Google
 import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.gotrue.providers.builtin.IDToken
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.Credentials
+import java.security.MessageDigest
+import java.util.UUID
+import kotlin.math.log
 
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
+@Deprecated("Not In Use")
 fun signup(navHostController: NavHostController){
+    val context = LocalContext.current.applicationContext
+
+    val viewModel = viewModel<viewmodel>(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return viewmodel(
+                    context
+                ) as T
+            }
+        }
+    )
+
 
 
     val couroutine = rememberCoroutineScope()
+
+    val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    val action=supabaseclient.client.composeAuth.rememberSignInWithGoogle(
+        onResult = {result->
+                   when(result){
+                       is NativeSignInResult.Success->{
+                           editor.putString(
+                               "authtoken",
+                               supabaseclient.client.auth.currentAccessTokenOrNull()
+                           )
+                           editor.apply()
+                           editor.putBoolean("islog", true)
+                           editor.apply()
+                           navHostController.navigate(Destinations.settings.route)
+
+
+                       }
+
+                       NativeSignInResult.ClosedByUser -> {
+                           Log.d("TAG", "signup: closed")
+                       }
+                       is NativeSignInResult.Error -> {
+                           Log.d("TAG", "signup: $result")
+
+                       }
+                       is NativeSignInResult.NetworkError -> {
+
+                       }
+                   }
+            },
+        fallback = {
+            Log.d("TAG", "signup: hi")
+
+        }
+
+
+
+    )
+
 
 
     var username by remember {
@@ -88,6 +162,8 @@ fun signup(navHostController: NavHostController){
 
         mutableStateOf("")
     }
+
+
 
 
     LaunchedEffect(Unit) {
@@ -98,6 +174,7 @@ fun signup(navHostController: NavHostController){
         autofillTypes = listOf(AutofillType.EmailAddress),
         onFill = { username = it }
     )
+
 
 
     val autofill = LocalAutofill.current
@@ -126,19 +203,9 @@ fun signup(navHostController: NavHostController){
         mutableStateOf(false)
     }
 
-    val context = LocalContext.current
-    val viewModel = viewModel<viewmodel>(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return viewmodel(
-                    context
-                ) as T
-            }
-        }
-    )
-    val sharedPreferences: SharedPreferences =
-        context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
-    val editor = sharedPreferences.edit()
+
+
+
     LaunchedEffect(key1 = Unit) {
         delay(1000)
         val token = sharedPreferences.getString("authtoken", "")
@@ -266,8 +333,7 @@ fun signup(navHostController: NavHostController){
                                     editor.apply()
                                     editor.putBoolean("islog", true)
                                     editor.apply()
-                                    viewModel.updatedatabase()
-                                    viewModel.updatefeeddatabase()
+
 
                                     navHostController.navigate(Destinations.home.route){
 
@@ -290,7 +356,7 @@ fun signup(navHostController: NavHostController){
                                 )
                                     .show()
 
-                                SessionStatus.NotAuthenticated -> Toast.makeText(
+                                is SessionStatus.NotAuthenticated -> Toast.makeText(
                                     context,
                                     "Not Authenticated",
                                     Toast.LENGTH_SHORT
@@ -332,11 +398,20 @@ fun signup(navHostController: NavHostController){
             }
             else {
                 Text("Sign Up")
+
             }
 
         }
-        TextButton(onClick = { showdiologbox = true;navHostController.navigate(Destinations.password_recover.route) }) {
-            Text(text = "Forgot Password")
+        TextButton(
+            onClick = {
+                action.startFlow()
+
+
+
+            }
+
+        ) {
+            Text(text = "Sign-in with google")
 
         }
         Row(modifier= Modifier
@@ -355,3 +430,4 @@ fun signup(navHostController: NavHostController){
 
     }
     }
+

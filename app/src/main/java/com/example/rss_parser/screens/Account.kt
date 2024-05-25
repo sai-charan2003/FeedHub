@@ -1,27 +1,20 @@
 package com.example.rss_parser.screens
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Scaffold
 
 import androidx.compose.material3.Text
@@ -41,21 +34,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.rss_parser.Navigation.Destinations
+import com.example.rss_parser.Utils.ProcessState
+import com.example.rss_parser.Utils.SharedPref
+import com.example.rss_parser.screens.Items.SettingsListItem
 import com.example.rss_parser.supabase.client.supabaseclient
 import com.example.rss_parser.viewmodel.viewmodel
-import io.github.jan.supabase.exceptions.HttpRequestException
-import io.github.jan.supabase.exceptions.RestException
-import io.github.jan.supabase.gotrue.SignOutScope
+import io.github.jan.supabase.annotations.SupabaseInternal
 import io.github.jan.supabase.gotrue.auth
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, SupabaseInternal::class)
 @Composable
-fun account(navHostController: NavHostController){
+fun Account(navHostController: NavHostController){
     var useremail by remember {
         mutableStateOf("")
     }
@@ -69,13 +62,12 @@ fun account(navHostController: NavHostController){
             }
         }
     )
+    val lifecycle= LocalLifecycleOwner.current
     var coroutinescope= rememberCoroutineScope()
 
     val scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val sharedPreferences: SharedPreferences =
-        context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
+    val SharedPref= SharedPref(context)
 
-    val editor = sharedPreferences.edit()
 
     LaunchedEffect(Unit) {
         useremail= supabaseclient.client.auth.sessionManager.loadSession()?.user?.email.toString()
@@ -107,7 +99,6 @@ fun account(navHostController: NavHostController){
             .fillMaxSize()) {
             item{
                 ListItem(
-
                     {
                         Column {
 
@@ -120,13 +111,25 @@ fun account(navHostController: NavHostController){
                                     imageVector = Icons.Outlined.AccountCircle,
                                     contentDescription = null
                                 )
-                                Text(
-                                    useremail,
-                                    modifier = Modifier.padding(start = 10.dp),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
+                                if(SharedPref.isAnonymousSignin){
+                                    Text(
+                                        "Anonymous",
+                                        modifier = Modifier.padding(start = 10.dp),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
 
-                                    )
+                                        )
+
+                                }
+                                else {
+                                    Text(
+                                        useremail,
+                                        modifier = Modifier.padding(start = 10.dp),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+
+                                        )
+                                }
 
                             }
 
@@ -134,58 +137,33 @@ fun account(navHostController: NavHostController){
                     },
 
                 )
-                ListItem({
-                    Text(text = "Log Out")
-                },modifier= Modifier
-                    .clickable {
-                        viewModel.cleardb()
-                        viewModel.clearwebsites()
+                SettingsListItem(label = "Log Out",Modifier=Modifier.padding(start= 15.dp)) {
+                    viewModel.Logout().observe(lifecycle){
+                        when(it){
+                            is ProcessState.Error -> {
+                                Toast.makeText(context,it.error,Toast.LENGTH_LONG).show()
+                            }
+                            ProcessState.Loading -> {
 
-                        coroutinescope.launch {
+                            }
+                            ProcessState.Success -> {
+                                viewModel.cleardb()
 
-                            try {
-                                supabaseclient.client.auth.signOut(SignOutScope.GLOBAL)
-                                editor.putBoolean("islog", false)
-                                editor.apply()
+                                viewModel.clearAllBookmarks()
                                 navHostController.popBackStack()
                                 navHostController.navigate(Destinations.enterscreen.route) {
                                     popUpTo(Destinations.home.route) {
                                         inclusive = true
                                     }
                                 }
-                            } catch (e: Exception) {
-                                when (e) {
-                                    is RestException -> {
-                                        val error = e.message?.substringBefore("URL")
-                                        Toast
-                                            .makeText(context, "$error", Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
-
-                                    is HttpRequestTimeoutException -> {
-                                        val error = e.message?.substringBefore("URL")
-                                        Toast
-                                            .makeText(context, "$error", Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
-
-                                    is HttpRequestException -> {
-                                        val error = e.message?.substringBefore("URL")
-                                        Toast
-                                            .makeText(context, "$error", Toast.LENGTH_SHORT)
-                                            .show()
-                                    }
-                                }
-
-
+                                SharedPref.clearSharedPrefs()
                             }
+
                         }
                     }
-                    .padding(start = 35.dp))
-                HorizontalDivider(modifier=Modifier.padding(start=40.dp))
-                ListItem({
-                    Text(text = "Change password")
-                },modifier=Modifier.clickable { navHostController.navigate(Destinations.password_recover.route) }.padding(start=35.dp))
+
+                }
+
 
             }
 

@@ -1,3 +1,4 @@
+
 package com.example.rss_parser.screens
 
 import android.content.Context
@@ -70,6 +71,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Deprecated("Not In Use")
 fun password_change(navHostController: NavHostController) {
 
     val corutine = rememberCoroutineScope()

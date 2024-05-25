@@ -1,117 +1,60 @@
 package com.example.rss_parser.screens
 
-import android.content.Context
-import android.content.Intent
-import android.content.SharedPreferences
-import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import com.example.rss_parser.BuildConfig
-import com.example.rss_parser.R
-import com.example.rss_parser.check_network.Connectionstatus
-import com.example.rss_parser.check_network.connectivityState
-import com.example.rss_parser.inappbrowser.openTab
-import com.example.rss_parser.supabase.client.supabaseclient
+import com.example.rss_parser.Utils.AppUtils
+import com.example.rss_parser.screens.Items.NoInternetOnTopBar
+import com.example.rss_parser.Utils.ProcessState
+import com.example.rss_parser.Utils.Connectionstatus
+import com.example.rss_parser.Utils.connectivityState
+import com.example.rss_parser.screens.Items.CompactListItem
 import com.example.rss_parser.ui.theme.RSSparserTheme
 import com.example.rss_parser.viewmodel.viewmodel
-import com.google.ai.client.generativeai.GenerativeModel
-import com.meetup.twain.MarkdownText
-import io.github.jan.supabase.exceptions.HttpRequestException
-import io.github.jan.supabase.exceptions.RestException
-import io.github.jan.supabase.postgrest.from
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @Composable
 
-fun booksmarks(navHostController: NavHostController) {
-
-
-
+fun BookmarkScreen(navHostController: NavHostController) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
-    val generativeModel = GenerativeModel(
-        modelName = "gemini-pro",
-        apiKey = BuildConfig.apiKey
-    )
-    val haptic= LocalHapticFeedback.current
-
-    val coroutine= rememberCoroutineScope()
-    val sharedPreferences: SharedPreferences =
-        context.getSharedPreferences("showimages", Context.MODE_PRIVATE)
-
-    val showimages by remember {
-        mutableStateOf(sharedPreferences.getBoolean("showimages", true))
-    }
-    var ishapticenabled by remember{
-        mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
-    }
-    var aisummarypage by remember {
-        mutableStateOf(false)
-    }
-    var summary by remember {
-        mutableStateOf("")
-    }
 
 
-    val Scroll = TopAppBarDefaults.pinnedScrollBehavior()
+
+    val Scroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val pulltorefreshState= rememberPullToRefreshState()
     val viewModel = viewModel<viewmodel>(
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -121,38 +64,36 @@ fun booksmarks(navHostController: NavHostController) {
             }
         }
     )
-    val bookmarks by viewModel.bookmarkdata.observeAsState()
+    val bookmarks by viewModel.bookmarkData.collectAsState()
+    var isRefreshing by remember {
+        mutableStateOf(false)
+    }
+    val lifecycle= LocalLifecycleOwner.current
+
     val connection by connectivityState()
 
     val isConnected = connection === Connectionstatus.Available
     LaunchedEffect(key1=bookmarks){
         if(isConnected){
-            try {
+                viewModel.getBookmarkDataFromSupabase().observe(lifecycle){
+                    when(it){
+                        is ProcessState.Error -> {
 
-                viewModel.getbookmarksdata()
-            }
-            catch (e:Exception){
-                when(e){
-                    is RestException ->{
-                        val error = e.message?.substringBefore("URL")
-                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
+                        }
+                        ProcessState.Loading -> {
+                            isRefreshing=true
+                        }
+                        ProcessState.Success -> {
+                            isRefreshing=false
+                        }
                     }
-                    is HttpRequestTimeoutException ->{
-                        val error = e.message?.substringBefore("URL")
-                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                    }
-                    is HttpRequestException ->{
-                        val error = e.message?.substringBefore("URL")
-                        Toast.makeText(context, "$error", Toast.LENGTH_SHORT).show()
-                    }
+
                 }
 
-            }
     }
 
     }
 
-    //val bookmarks by viewModel.allbookmarks.observeAsState(initial = emptyList())
     RSSparserTheme() {
 
 
@@ -160,228 +101,108 @@ fun booksmarks(navHostController: NavHostController) {
             .fillMaxSize()
             .nestedScroll(Scroll.nestedScrollConnection),
             topBar = {
-                TopAppBar(title = { Text(text = "Bookmarks") }, scrollBehavior = Scroll, navigationIcon = {
+                LargeTopAppBar(title = { Text(text = "Bookmarks") }, scrollBehavior = Scroll, navigationIcon = {
                     IconButton(
                         onClick = { navHostController.popBackStack()}) {
                         Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack,contentDescription = null)
 
                     }
-                })
+
+                },
+                    actions = {
+                        NoInternetOnTopBar(isConnected = isConnected, context = context)
+                    }
+
+                )
             }
 
 
         ) {
-            if (bookmarks?.isEmpty() == true) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text("No Bookmarks added")
-
-                }
-            } else {
-
-                if (isConnected) {
 
 
-                    LazyColumn(modifier = Modifier.padding(it)) {
-                        bookmarks?.let { it1 ->
-                            items(it1.size) {
-                                var isloading by remember {
-                                    mutableStateOf(false)
+
+                    Box(modifier = Modifier
+                        .padding(it)
+                        .fillMaxSize()
+
+                        .nestedScroll(pulltorefreshState.nestedScrollConnection)
+                    ) {
+                        if (bookmarks?.isEmpty() == true) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                item {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .align(Alignment.Center),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text("No bookmarks added")
+
+                                    }
                                 }
-                                ListItem(
-                                    {
-                                        val sendIntent: Intent = Intent().apply {
-                                            action = Intent.ACTION_SEND
-                                            putExtra(Intent.EXTRA_TEXT, bookmarks!![it].websitelink)
-                                            type = "text/plain"
-                                        }
-                                        Row(
-                                            horizontalArrangement = Arrangement.Center,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            if (showimages) {
-                                                AsyncImage(
-                                                    model = bookmarks!![it].images,
-                                                    contentDescription = "null",
-                                                    modifier = Modifier
-                                                        .height(100.dp)
-                                                        .width(100.dp)
-                                                        .padding(10.dp)
-                                                        .clip(RoundedCornerShape(5.dp)),
-                                                    alignment = Alignment.CenterEnd,
-                                                    contentScale = ContentScale.Fit
-                                                )
+                            }
+                        } else {
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                bookmarks?.let { it1 ->
+                                    items(it1.size) {
+                                        CompactListItem(AppUtils.bookmarkToFeedMapper(bookmarks[it]))
+
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(
+                                                start = 10.dp,
+                                                end = 10.dp
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        if(pulltorefreshState.isRefreshing){
+
+                            LaunchedEffect(true) {
+                                isRefreshing=true
+                                if(isConnected) {
+                                    viewModel.getBookmarkDataFromSupabase().observe(lifecycle){
+                                        when(it){
+                                            is ProcessState.Error -> {
+
                                             }
+                                            ProcessState.Loading -> {
 
-                                            Column() {
-                                                Text(
-                                                    text = bookmarks!![it].websitelink.substringAfter(
-                                                        "https://"
-                                                    )
-                                                        .substringAfter("www.")
-                                                        .substringBefore(".com"),
-                                                    modifier = Modifier.padding(
-                                                        start = 10.dp,
-                                                        end = 10.dp,
-                                                        bottom = 10.dp
-                                                    ),
-                                                    style = MaterialTheme.typography.labelLarge,
-                                                    fontWeight = FontWeight.Light,
-                                                    textAlign = TextAlign.Justify
-                                                )
-
-                                                Text(
-                                                    text = bookmarks!![it].title,
-                                                    modifier = Modifier.padding(
-                                                        start = 10.dp,
-                                                        end = 10.dp,
-                                                        bottom = 10.dp
-                                                    ),
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    fontWeight = FontWeight.Bold,
-                                                    textAlign = TextAlign.Justify
-                                                )
-                                                Row {
-
-                                                    Spacer(Modifier.weight(1f))
-                                                    IconButton(onClick = {
-                                                        isloading = true
-                                                        coroutine.launch {
-                                                            supabaseclient.client.from("bookmarks")
-                                                                .delete {
-                                                                    filter {
-                                                                        eq(
-                                                                            "websitelink",
-                                                                            bookmarks!![it].websitelink
-                                                                        )
-                                                                    }
-                                                                }
-                                                            viewModel.getbookmarksdata()
-                                                        }
-                                                        isloading = false
-                                                        if(ishapticenabled) {
-                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                        }
-
-                                                    }) {
-                                                        if (isloading) {
-                                                            CircularProgressIndicator( strokeCap = StrokeCap.Round)
-                                                        }
-
-                                                        Icon(
-
-                                                            imageVector = Icons.Filled.Bookmark,
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(15.dp)
-                                                        )
-
-                                                    }
-
-
-
-
-                                                    IconButton(onClick = {
-                                                        if(ishapticenabled) {
-                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                        }
-                                                        val shareIntent =
-                                                            Intent.createChooser(sendIntent, null)
-                                                        context.startActivity(shareIntent)
-
-
-                                                    }) {
-                                                        Icon(
-                                                            imageVector = Icons.Outlined.Share,
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(15.dp)
-                                                        )
-
-                                                    }
-                                                    IconButton(onClick = { aisummarypage=true;coroutine.launch {
-                                                        if(ishapticenabled) {
-                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                        }
-                                                        summary=""
-                                                        val response=generativeModel.generateContent(
-                                                            bookmarks!![it].websitelink)
-                                                        summary=response.text.toString()
-
-                                                    } }) {
-                                                        Icon(painter = painterResource(id = R.drawable.vector), contentDescription = null,modifier=Modifier.size(15.dp))
-
-                                                    }
-
-                                                }
                                             }
-                                        }
-
-                                    },
-                                    modifier = Modifier.clickable {
-
-                                        if (sharedPreferences.getBoolean("inappbrowser", false)) {
-                                            openTab(context, bookmarks!![it].websitelink)
-                                        } else {
-                                            uriHandler.openUri(bookmarks!![it].websitelink)
+                                            ProcessState.Success -> {
+                                                isRefreshing=false
+                                            }
                                         }
                                     }
-                                )
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(
-                                        start = 10.dp,
-                                        end = 10.dp
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-                else{
-                    Column(modifier=Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                        Image(painter = painterResource(id = R.drawable.round_wifi_off_24), contentDescription = "no internet")
-                        Text("Couldn't connect to internet.")
-                        Text("Please check your internet connection")
-
-                    }
-                }
-            }
-            if(aisummarypage){
-                ModalBottomSheet(onDismissRequest = { aisummarypage=false;summary=""},modifier=Modifier.fillMaxSize()) {
-                    if(summary!="") {
-
-                        LazyColumn {
-                            item {
-                                if(ishapticenabled) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 }
-                                MarkdownText(
-                                    markdown = summary,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    textAlign = TextAlign.Justify,
-                                    modifier=Modifier.padding(15.dp)
-
-                                )
-
-
-
-
-
+                                else{
+                                    isRefreshing=false
+                                }
 
                             }
-                        }
-                    }
-                    else{
 
-                        Column(modifier=Modifier.fillMaxWidth().padding(top=200.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                            Text(text="Summarizing Article",modifier=Modifier.padding(bottom=15.dp))
-                            LinearProgressIndicator(strokeCap = StrokeCap.Round)
                         }
+                        LaunchedEffect(key1 = isRefreshing) {
+                            if(isRefreshing){
+                                pulltorefreshState.startRefresh()
+                            }
+                            else{
+                                pulltorefreshState.endRefresh()
+                            }
+
+                        }
+                        PullToRefreshContainer(state = pulltorefreshState,modifier=Modifier.align(
+                            Alignment.TopCenter))
                     }
 
-                }
             }
+
         }
     }
-}

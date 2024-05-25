@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="5dp"
+
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/rounded_rss_feed_50"
+                tools:layout_editor_absoluteX="10dp"
+                tools:layout_editor_absoluteY="4dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:paddingStart="10dp"
+
+                android:text="Feed Hub"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="3dp"
+            android:paddingStart="5dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Lava O2 arrives with 50 MP camera and sub-$100 price tag"
+                android:textFontWeight="700"
+                android:textSize="15sp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="5dp"
+                android:orientation="horizontal"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="gsmarena"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="•"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="30 minutes ago"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+
+            </LinearLayout>
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="0.2dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+
+            android:paddingStart="5dp"
+
+            android:paddingBottom="5dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Qualcomm Says Windows Games Will Just Work on Snapdragon X Elite"
+                android:textFontWeight="700"
+                android:textSize="15sp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="5dp"
+                android:orientation="horizontal"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="beebom"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="•"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="45 minutes ago"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+
+                    android:paddingEnd="5dp"/>
+
+            </LinearLayout>
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="0.2dp"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:paddingStart="5dp"
+            android:paddingBottom="5dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="11 Fixes for Pictures Not Loading or Showing in iMessage on iPhone"
+                android:textFontWeight="700"
+                android:textSize="15sp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="5dp"
+                android:orientation="horizontal"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="techwiser"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="•"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1 hour ago"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+
+            </LinearLayout>
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="0.2dp"
+                android:layout_marginStart="5dp"
+                android:background="@color/white"
+                android:layout_marginEnd="5dp"
+                />
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:paddingStart="5dp"
+            android:paddingBottom="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Five takeaways from the huge US antitrust lawsuit against Apple"
+                android:textFontWeight="700"
+                android:textSize="15sp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:paddingBottom="5dp"
+                android:orientation="horizontal"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="theverge"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="•"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1 hour ago"
+                    android:paddingStart="5dp"
+                    android:textFontWeight="400"
+                    android:paddingLeft="5dp"
+
+                    android:paddingEnd="5dp"/>
+
+            </LinearLayout>
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="0.2dp"
+                android:layout_marginStart="5dp"
+                android:background="@color/white"
+                android:layout_marginEnd="5dp"
+                />
+        </LinearLayout>
+
+
+
+
+
+
+
+
+    </LinearLayout>
+
+
+
+</RelativeLayout>

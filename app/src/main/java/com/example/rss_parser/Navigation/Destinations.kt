@@ -3,11 +3,11 @@ package com.example.rss_parser.Navigation
 sealed class Destinations(val route:String) {
     object home:Destinations("Home")
     object settings:Destinations("Settings")
-    object addnewfeed:Destinations("addnewfeed")
+    object addnewfeed:Destinations("Add new feed")
     object feeds:Destinations("feeds")
-    object bookmarks:Destinations("bookmarks")
+    object bookmarks:Destinations("Bookmarks")
     object aboutdeveloper:Destinations("aboutdeveloper")
-    object aboutapp:Destinations("aboutapp")
+    object aboutapp:Destinations("AboutApp")
     object signup:Destinations("signup")
     object enterscreen:Destinations("enterscreen")
     object signinscreen:Destinations("signin")
@@ -15,6 +15,8 @@ sealed class Destinations(val route:String) {
     object account:Destinations("account")
     object appiconchange:Destinations("appiconchange")
     object search:Destinations("search")
+    object verifyotp :Destinations("verifyotp/{email}")
+
 
 
 

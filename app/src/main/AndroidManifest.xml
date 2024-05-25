@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -16,6 +19,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApp.MySplash"
         tools:targetApi="tiramisu">
+        <receiver
+            android:name=".Widgets.FeedWidgetReceiver"
+
+            android:exported="true"
+            android:label="Feed Widget">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+
+                android:resource="@xml/feed_widget" />
+        </receiver>
+
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -28,7 +47,9 @@
             </intent-filter>
 
 
+
         </activity>
+        <activity android:name="com.example.rss_parser.YourActivity"/>
         <activity-alias
             android:name=".MainActivityorange"
             android:exported="true"
@@ -90,10 +111,40 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
+        <activity-alias
+            android:name=".MainActivityweb"
+            android:exported="true"
+            android:enabled="false"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_web"
+            android:roundIcon="@mipmap/ic_launcher_web_round">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivitynews"
+            android:exported="true"
+            android:enabled="false"
+
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_news"
+            android:roundIcon="@mipmap/ic_launcher_news_round">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+
+
+
 
 
 
     </application>
+
     <queries>
         <intent>
             <action android:name="android.intent.action.SEND" />

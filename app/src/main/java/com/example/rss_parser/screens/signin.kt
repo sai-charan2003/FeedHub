@@ -82,6 +82,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
+@Deprecated("Not In use")
 fun signin(navHostController: NavHostController) {
 
 
@@ -294,7 +295,9 @@ fun signin(navHostController: NavHostController) {
                                     )
                                         .show()
 
-                                    SessionStatus.NotAuthenticated -> Toast.makeText(
+
+
+                                    is SessionStatus.NotAuthenticated -> Toast.makeText(
                                         context,
                                         "Not Authenticated",
                                         Toast.LENGTH_SHORT

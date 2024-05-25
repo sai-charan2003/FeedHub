@@ -16,9 +16,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,13 +29,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.rss_parser.supabase.client.supabaseclient
+import com.example.rss_parser.Utils.ProcessState
 import com.example.rss_parser.viewmodel.viewmodel
-import com.example.rss_parser.supabase.database.website_supabase
-import com.example.rss_parser.database.feeddatabase.websitedatabase.websites
-import io.github.jan.supabase.gotrue.auth
-import io.github.jan.supabase.postgrest.from
+
 import kotlinx.coroutines.launch
 
 @Composable
@@ -59,6 +56,7 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
         }
 
     )
+    val lifecycle= LocalLifecycleOwner.current
     var ishapticenabled by remember{
         mutableStateOf(sharedPreferences.getBoolean("hapticenabled",true))
     }
@@ -71,19 +69,13 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
     var isloading by remember{
         mutableStateOf(false)
     }
-    val url by viewModel.allwebsites.observeAsState()
+    val url by viewModel.allwebsites.collectAsState()
 
     fun containsfeedlink(website:String):Boolean{
         return url?.any {
-            it.websitelink==website
+            it==website
         } ?: false
     }
-
-
-
-
-
-
 
             ListItem({
                 Row {
@@ -95,41 +87,43 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = {
-
-
-
-
                             if (!containsfeedlink(rssurl)) {
-
-                                isloading=true
-                                try {
-
-
                                     coroutine.launch {
-
+                                        isloading = true
                                         val checkforerror = viewModel.fetchrssfeed(rssurl)
+
                                         if (checkforerror != null) {
-                                            Log.d("TAG", "topfeeds: bye")
-                                            val user =
-                                                supabaseclient.client.auth.retrieveUserForCurrentSession(
-                                                    updateSession = true
-                                                )
+                                            viewModel.InsertWebsiteIntoSupaBase(rssurl,context).observe(lifecycle){
+                                                when(it){
+                                                    is ProcessState.Error -> {
+                                                        Toast.makeText(context,it.error,Toast.LENGTH_LONG).show()
+                                                        Log.e("TAG", "addfeed: $it")
+                                                        isloading=false
+                                                    }
+                                                    ProcessState.Loading -> {
+                                                        isloading=true
+                                                    }
+                                                    ProcessState.Success -> {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Feed added",
+                                                            Toast.LENGTH_SHORT
+                                                        )
+                                                            .show()
 
-                                            supabaseclient.client.from("website").insert(
-                                                website_supabase(
-                                                    id = null,
-                                                    websitelink = rssurl,
-                                                    email = user.email
-                                                )
-                                            )
-                                            viewModel.websiteinsert(websites(0, rssurl))
-                                            viewModel.getwebsiteurlfromdb()
-                                            isloading = false
-                                            if (ishapticenabled) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        if (ishapticenabled) {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        }
+                                                        viewModel.getRssDataForGoogleNews(rssurl,websiteurl)
+
+                                                        isloading = false
+                                                        feedlink = ""
+                                                    }
+                                                    else->{
+
+                                                    }
+                                                }
                                             }
-
-
                                         } else {
                                             isloading = false
                                             Toast.makeText(
@@ -140,25 +134,35 @@ fun topfeeds(rssurl:String,websitename:String,websiteurl:String) {
                                                 .show()
                                         }
                                     }
-                                }
-                                catch (e:Exception){
 
-                                }
+
                             } else {
                                 isloading=true
                                 coroutine.launch {
-                                    supabaseclient.client.from("website").delete {
-                                        filter {
-                                            eq("websitelink", rssurl)
-                                        }
-                                    }
-                                }
-                                viewModel.websitedelete(rssurl)
+                                    viewModel.deleteWebsiteFromSupabase(rssurl,context).observe(lifecycle){
+                                        when(it) {
+                                            is ProcessState.Error -> {
+                                                Toast.makeText(context,it.error,Toast.LENGTH_LONG).show()
+                                                isloading=false
+                                            }
+                                            ProcessState.Loading -> {
+                                                isloading=true
+                                            }
+                                            ProcessState.Success -> {
+                                                isloading=false
+                                                viewModel.delete(rssurl)
 
-                                isloading=false
-                                if(ishapticenabled) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                }
+                                                if(ishapticenabled){
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                }
+
+                                            }
+                                        }
+
+
+                                    }
+                                    }
+
                             }
 
 

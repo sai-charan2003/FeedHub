@@ -37,7 +37,7 @@ import com.example.rss_parser.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun aboutdeveloper(navHostController: NavHostController){
+fun AboutDeveloper(navHostController: NavHostController){
     val Scroll=TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val uri= LocalUriHandler.current
 
@@ -87,7 +87,7 @@ fun aboutdeveloper(navHostController: NavHostController){
                     Text("X(Twitter)")
 
                 }
-                ElevatedButton(onClick = { uri.openUri("https://sai-charan2003.github.io/") },modifier=Modifier.fillMaxWidth().padding(start=10.dp,end=10.dp, top = 20.dp)) {
+                ElevatedButton(onClick = { uri.openUri("https://nsaicharan.onrender.com/") },modifier=Modifier.fillMaxWidth().padding(start=10.dp,end=10.dp, top = 20.dp)) {
                     Icon(imageVector = Icons.Outlined.Public, contentDescription = "portfolio",modifier=Modifier.padding(end = 10.dp))
                     Text("Portfolio")
 
