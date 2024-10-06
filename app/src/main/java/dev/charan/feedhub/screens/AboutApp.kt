@@ -83,7 +83,7 @@ fun AboutApp(navHostController: NavHostController) {
     var showupdatebottom by remember {
         mutableStateOf(false)
     }
-    var version = "3.1"
+    var version = "3.2"
 
     val autoupdate by viewModel.updatedata.observeAsState()
     var updateavailable by remember {
