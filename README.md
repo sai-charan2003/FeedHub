@@ -11,11 +11,13 @@ FeedHub simplifies the process of collecting articles from favorite sources. Key
 - **Supabase Integration:** Manage storage of website links and bookmarks with Supabase while utilizing Supabase authentication for user login and creation.
 - **Gemini AI:** Uses Google's latest gemini AI to summarize the articles.
 - **Predictive Back Gesture Integration:** Enhance user experience by integrating the predictive back gesture introduced by Google with Android 14.
+- **Widget**:Add a widget to your home screen to stay up to date with the latest news from your added feeds.
 
 
 ## TechStack
 - Kotlin
 - Jetpack Compose
+- Jetpack Glance (For widget)
 - Gemini AI
 - [RSS-Parser](https://github.com/prof18/RSS-Parser)
 - [Supabase](https://supabase.com/)
