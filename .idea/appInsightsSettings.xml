@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="dev.charan.feedhub" />
+                  <option name="mobileSdkAppId" value="1:68780273522:android:f6ee37be00760db06637eb" />
+                  <option name="projectId" value="feedhub-fdfd5" />
+                  <option name="projectNumber" value="68780273522" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

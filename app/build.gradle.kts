@@ -7,14 +7,15 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-
+    id("com.mikepenz.aboutlibraries.plugin") version "11.2.3"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
 
 }
 
 
 
 android {
-    namespace = "com.example.rss_parser"
+    namespace = "dev.charan.feedhub"
     compileSdk = 34
     val key:String=com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir).getProperty("SUPABASE_ANON_KEY")
 
@@ -26,7 +27,7 @@ android {
 
     defaultConfig {
 
-        applicationId = "com.example.rss_parser"
+        applicationId = "dev.charan.feedhub"
         minSdk = 26
 
         targetSdk = 34
@@ -72,9 +73,9 @@ android {
         buildConfig = true
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
-    }
+//    composeOptions {
+//        kotlinCompilerExtensionVersion = "1.4.3"
+//    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -117,11 +118,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-swiperefresh:0.34.0")
     implementation ("com.google.dagger:hilt-android:2.48")
     implementation ("me.saket.swipe:swipe:1.3.0")
-
-
-
-
-
     kapt ("com.google.dagger:hilt-compiler:2.47")
     implementation ("androidx.hilt:hilt-navigation-compose:1.1.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -154,6 +150,8 @@ dependencies {
     implementation ("com.google.android.libraries.identity.googleid:googleid:1.1.0")
     implementation ("com.google.android.gms:play-services-auth:21.0.0")
     implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
+    implementation ("com.mikepenz:aboutlibraries-core:11.2.3")
+    implementation("com.mikepenz:aboutlibraries-compose-m3:11.2.3")
 
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies

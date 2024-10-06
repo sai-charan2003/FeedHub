@@ -20,7 +20,7 @@
         android:theme="@style/Theme.MyApp.MySplash"
         tools:targetApi="tiramisu">
         <receiver
-            android:name=".Widgets.FeedWidgetReceiver"
+            android:name="dev.charan.feedhub.Widgets.FeedWidgetReceiver"
 
             android:exported="true"
             android:label="Feed Widget">
@@ -36,7 +36,7 @@
 
 
         <activity
-            android:name=".MainActivity"
+            android:name="dev.charan.feedhub.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.MyApp.MySplash">
@@ -49,12 +49,12 @@
 
 
         </activity>
-        <activity android:name="com.example.rss_parser.YourActivity"/>
+
         <activity-alias
             android:name=".MainActivityorange"
             android:exported="true"
             android:enabled="false"
-            android:targetActivity=".MainActivity"
+            android:targetActivity="dev.charan.feedhub.MainActivity"
             android:icon="@mipmap/ic_launcher1"
 
             android:roundIcon="@mipmap/ic_launcher1">
@@ -67,7 +67,7 @@
             android:name=".MainActivityblack"
             android:exported="true"
             android:enabled="false"
-            android:targetActivity=".MainActivity"
+            android:targetActivity="dev.charan.feedhub.MainActivity"
             android:icon="@mipmap/ic_launcher_black"
             android:roundIcon="@mipmap/ic_launcher_black_round">
             <intent-filter>
@@ -79,7 +79,7 @@
             android:name=".MainActivitywhite"
             android:exported="true"
             android:enabled="false"
-            android:targetActivity=".MainActivity"
+            android:targetActivity="dev.charan.feedhub.MainActivity"
             android:icon="@mipmap/ic_launcher_white"
             android:roundIcon="@mipmap/ic_launcher_white_round">
             <intent-filter>
@@ -91,7 +91,7 @@
             android:name=".MainActivitymint"
             android:exported="true"
             android:enabled="false"
-            android:targetActivity=".MainActivity"
+            android:targetActivity="dev.charan.feedhub.MainActivity"
             android:icon="@mipmap/ic_launcher_mint"
             android:roundIcon="@mipmap/ic_launcher_mint_round">
             <intent-filter>
@@ -103,7 +103,7 @@
             android:name=".MainActivitytwilight"
             android:exported="true"
             android:enabled="false"
-            android:targetActivity=".MainActivity"
+            android:targetActivity="dev.charan.feedhub.MainActivity"
             android:icon="@mipmap/ic_launcher_twilight"
             android:roundIcon="@mipmap/ic_launcher_twilight_round">
             <intent-filter>
@@ -115,7 +115,7 @@
             android:name=".MainActivityweb"
             android:exported="true"
             android:enabled="false"
-            android:targetActivity=".MainActivity"
+            android:targetActivity="dev.charan.feedhub.MainActivity"
             android:icon="@mipmap/ic_launcher_web"
             android:roundIcon="@mipmap/ic_launcher_web_round">
             <intent-filter>
@@ -128,7 +128,7 @@
             android:exported="true"
             android:enabled="false"
 
-            android:targetActivity=".MainActivity"
+            android:targetActivity="dev.charan.feedhub.MainActivity"
             android:icon="@mipmap/ic_launcher_news"
             android:roundIcon="@mipmap/ic_launcher_news_round">
             <intent-filter>
